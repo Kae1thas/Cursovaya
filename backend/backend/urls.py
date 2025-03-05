@@ -9,4 +9,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('events.urls')),
     path("", home),
+    
 ]
