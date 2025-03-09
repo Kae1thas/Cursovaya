@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
-import Modal from "react-modal";
-import CreateEventForm from "../components/CreateEventForm";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import CreateEventForm from '../components/CreateEventForm';
+import DeleteConfirmModal from '../components/DeleteConfirmModal'; // Импортируем новый компонент
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState(null);
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
 
   useEffect(() => {
     fetchEvents();
@@ -15,16 +17,16 @@ const EventsPage = () => {
 
   const fetchEvents = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:8000/api/events/", {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:8000/api/events/', {
         headers: {
           Authorization: `Token ${token}`,
         },
       });
       setEvents(response.data);
     } catch (error) {
-      console.error("Ошибка загрузки событий:", error);
-      toast.error("Ошибка при загрузке событий.");
+      console.error('Ошибка загрузки событий:', error);
+      toast.error('Ошибка при загрузке событий.');
     }
   };
 
@@ -34,23 +36,23 @@ const EventsPage = () => {
 
   const handleEventUpdated = (updatedEvent) => {
     setEvents((prevEvents) =>
-      prevEvents.map((event) =>
-        event.id === updatedEvent.id ? updatedEvent : event
-      )
+      prevEvents.map((event) => (event.id === updatedEvent.id ? updatedEvent : event))
     );
   };
 
-  const handleEventDeleted = async (eventId) => {
+  const handleEventDeleted = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://127.0.0.1:8000/api/events/${eventToDelete.id}/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
-      toast.success("Мероприятие удалено.");
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventToDelete.id));
+      toast.success('Мероприятие удалено.');
+      closeDeleteConfirmModal();
     } catch (error) {
-      console.error("Ошибка при удалении мероприятия:", error);
-      toast.error("Ошибка при удалении мероприятия.");
+      console.error('Ошибка при удалении мероприятия:', error);
+      toast.error('Ошибка при удалении мероприятия.');
+      closeDeleteConfirmModal();
     }
   };
 
@@ -62,6 +64,16 @@ const EventsPage = () => {
   const closeModal = () => {
     setEventToEdit(null);
     setIsModalOpen(false);
+  };
+
+  const openDeleteConfirmModal = (event) => {
+    setEventToDelete(event);
+    setIsDeleteConfirmModalOpen(true);
+  };
+
+  const closeDeleteConfirmModal = () => {
+    setEventToDelete(null);
+    setIsDeleteConfirmModalOpen(false);
   };
 
   return (
@@ -101,7 +113,7 @@ const EventsPage = () => {
                 Редактировать
               </button>
               <button
-                onClick={() => handleEventDeleted(event.id)}
+                onClick={() => openDeleteConfirmModal(event)}
                 className="text-red-500"
               >
                 Удалить
@@ -110,6 +122,13 @@ const EventsPage = () => {
           </div>
         ))}
       </div>
+
+      {/* Модальное окно подтверждения удаления */}
+      <DeleteConfirmModal
+        isOpen={isDeleteConfirmModalOpen}
+        onClose={closeDeleteConfirmModal}
+        onConfirm={handleEventDeleted}
+      />
     </div>
   );
 };
