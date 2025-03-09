@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
-import CreateEventForm from "../components/CreateEventForm"; // Убедитесь, что путь к CreateEventForm правильный
+import CreateEventForm from "../components/CreateEventForm";
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);

@@ -11,16 +11,14 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
   const [location, setLocation] = useState("");
   const [dateError, setDateError] = useState("");
 
-  // Заполнение формы при редактировании
   useEffect(() => {
     if (eventToEdit) {
       setTitle(eventToEdit.title);
       setDescription(eventToEdit.description || "");
-      setStartTime(eventToEdit.start_time.slice(0, 16)); // Преобразуем start_time в нужный формат
-      setEndTime(eventToEdit.end_time.slice(0, 16)); // Преобразуем end_time в нужный формат
+      setStartTime(eventToEdit.start_time.slice(0, 16));
+      setEndTime(eventToEdit.end_time.slice(0, 16));
       setLocation(eventToEdit.location || "");
     } else {
-      // Очистка формы при закрытии модального окна
       setTitle("");
       setDescription("");
       setStartTime("");
@@ -29,7 +27,6 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
     }
   }, [eventToEdit]);
 
-  // Проверка на корректность даты начала и окончания
   useEffect(() => {
     if (startTime && endTime) {
       if (new Date(endTime) < new Date(startTime)) {
@@ -43,13 +40,11 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Проверка на обязательные поля
     if (!title || !startTime || !endTime) {
       toast.error("Заполните все обязательные поля!");
       return;
     }
 
-    // Проверка на корректность дат
     if (dateError) {
       toast.error(dateError);
       return;
@@ -88,7 +83,6 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
         onEventCreated(response.data);
       }
 
-      // Очистка формы
       setTitle("");
       setDescription("");
       setStartTime("");
