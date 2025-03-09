@@ -1,11 +1,10 @@
-<<<<<<< HEAD
+HEAD
 venv/
 .venv/
 __pycache__/
 *.pyc
 *.log
-=======
 *.pyc
 __pycache__/
 venv/
->>>>>>> fe8f55b283b3336d77414668df3b0bed28ae9e68
+fe8f55b283b3336d77414668df3b0bed28ae9e68
