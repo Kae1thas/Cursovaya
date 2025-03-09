@@ -96,8 +96,20 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
   };
 
   return (
-    <Modal isOpen={isOpen} onRequestClose={onClose} contentLabel="Create or Edit Event">
-      <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg p-6 flex flex-col">
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={onClose}
+      contentLabel="Create or Edit Event"
+      style={{
+        content: {
+          maxWidth: "500px", // Устанавливаем максимальную ширину
+          margin: "auto", // Центрируем по горизонтали
+          padding: "20px", // Добавим отступы
+          borderRadius: "10px", // Скруглим углы
+        },
+      }}
+    >
+      <div className="bg-white p-6 flex flex-col">
         <h2 className="text-2xl font-semibold text-center mb-4">
           {eventToEdit ? "Редактировать мероприятие" : "Создать мероприятие"}
         </h2>
