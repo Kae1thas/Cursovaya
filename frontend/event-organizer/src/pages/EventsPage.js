@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CreateEventForm from '../components/CreateEventForm';
-import DeleteConfirmModal from '../components/DeleteConfirmModal'; // Импортируем новый компонент
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import { motion } from 'framer-motion';
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
@@ -81,12 +82,15 @@ const EventsPage = () => {
       <h1 className="text-3xl font-bold text-center mb-6">Список мероприятий</h1>
 
       {/* Кнопка открытия модального окна для создания нового мероприятия */}
-      <button
+      <motion.button
         onClick={() => setIsModalOpen(true)}
         className="bg-green-500 text-white py-2 px-4 rounded-md mb-4 hover:bg-green-600"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
       >
         Создать новое мероприятие
-      </button>
+      </motion.button>
 
       {/* Модальное окно для создания/редактирования мероприятия */}
       <CreateEventForm
@@ -98,30 +102,44 @@ const EventsPage = () => {
       />
 
       {/* Список мероприятий */}
-      <div className="space-y-4">
+      <motion.div
+        className="space-y-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         {events.map((event) => (
-          <div key={event.id} className="bg-white shadow-md p-4 rounded-lg flex justify-between items-center">
+          <motion.div
+            key={event.id}
+            className="bg-white shadow-md p-4 rounded-lg flex justify-between items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             <div>
               <h2 className="text-xl font-semibold">{event.title}</h2>
               <p>{event.start_time} - {event.end_time}</p>
             </div>
             <div className="flex space-x-4">
-              <button
+              <motion.button
                 onClick={() => openEditModal(event)}
                 className="text-blue-500"
+                whileHover={{ scale: 1.1 }}
               >
                 Редактировать
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => openDeleteConfirmModal(event)}
                 className="text-red-500"
+                whileHover={{ scale: 1.1 }}
               >
                 Удалить
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Модальное окно подтверждения удаления */}
       <DeleteConfirmModal

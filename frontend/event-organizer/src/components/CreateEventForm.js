@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
+import { motion } from "framer-motion";
 
 const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose, isOpen }) => {
   const [title, setTitle] = useState("");
@@ -101,15 +102,27 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
       onRequestClose={onClose}
       contentLabel="Create or Edit Event"
       style={{
-        content: {
-          maxWidth: "500px", // Устанавливаем максимальную ширину
-          margin: "auto", // Центрируем по горизонтали
-          padding: "20px", // Добавим отступы
-          borderRadius: "10px", // Скруглим углы
+        overlay: {
+          backgroundColor: 'rgba(0, 0, 0, 0.6)', // Темный полупрозрачный фон
+          zIndex: 1000, // Чтобы модальное окно было сверху
         },
+        content: {
+          maxWidth: '500px',
+          margin: 'auto', // Центрируем окно
+          padding: '20px',
+          borderRadius: '10px',
+          backgroundColor: 'white', // Белый фон для формы
+          position: 'relative',
+        }
       }}
     >
-      <div className="bg-white p-6 flex flex-col">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white p-6 flex flex-col"
+      >
         <h2 className="text-2xl font-semibold text-center mb-4">
           {eventToEdit ? "Редактировать мероприятие" : "Создать мероприятие"}
         </h2>
@@ -165,7 +178,7 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </Modal>
   );
 };
