@@ -107,37 +107,37 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
             placeholder="Название"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md"
           />
           <textarea
             placeholder="Описание"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md"
           />
           <input
             type="datetime-local"
             max="2100-12-31T23:59"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md"
           />
           <input
             type="datetime-local"
             max="2100-12-31T23:59"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md"
           />
           <input
             type="text"
             placeholder="Место"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md"
           />
           {dateError && <p className="text-red-500 text-sm">{dateError}</p>}
-          <div className="flex justify-between">
+          <div className="flex justify-between mt-4">
             <button
               type="button"
               onClick={onClose}
