@@ -1,8 +1,4 @@
-venv/
-.venv/
 __pycache__/
 *.pyc
-*.log
-*.pyc
-__pycache__/
 venv/
+node_modules/
