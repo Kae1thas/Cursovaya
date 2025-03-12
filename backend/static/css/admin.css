@@ -1,0 +1,211 @@
+/* Основной стиль для темной темы */
+body.dark-theme {
+    background-color: #121212; /* Темный фон */
+    color: #e0e0e0; /* Светлый текст */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+/* Основной стиль для светлой темы */
+body.light-theme {
+    background-color: #ecf0f1; /* Светлый фон */
+    color: #2c3e50; /* Темный текст */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+/* Заголовки для темной темы */
+body.dark-theme h1, body.dark-theme h2 {
+    font-size: 28px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ffffff; /* Белый цвет для заголовков в темной теме */
+    margin-bottom: 20px;
+}
+
+/* Заголовки для светлой темы */
+body.light-theme h1, body.light-theme h2 {
+    font-size: 28px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000; /* Темный цвет для заголовков в светлой теме */
+    margin-bottom: 20px;
+}
+
+/* Подсветка важной информации */
+body.dark-theme .highlight, body.light-theme .highlight {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+/* Картинки и блоки с данными */
+body.dark-theme .card, body.light-theme .card {
+    background: linear-gradient(145deg, #3e4c59, #2c3e50);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 20px; /* Слева и справа отступы одинаковые */
+    color: #ecf0f1;  /* Светлый текст в карточках */
+}
+
+/* В светлой теме, чтобы текст не сливался с фоном */
+body.light-theme .card {
+    color: white;  /* Темный текст для светлой темы */
+}
+
+/* Подсветка ошибок */
+body.dark-theme .error, body.light-theme .error {
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+/* Подсветка успеха */
+body.dark-theme .success, body.light-theme .success {
+    background-color: #2ecc71;
+    color: white;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+/* Стили для карточек с уведомлениями */
+body.dark-theme .notification, body.light-theme .notification {
+    background-color: #2980b9;
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+/* Стили для ввода данных */
+body.dark-theme input, body.dark-theme select, body.dark-theme textarea,
+body.light-theme input, body.light-theme select, body.light-theme textarea {
+    background: linear-gradient(145deg, #34495e, #2c3e50); /* Градиент */
+    color: #ecf0f1;
+    border-radius: 5px;
+    padding: 10px;
+    border: 2px solid #3498db;
+    margin: 5px 0;
+    width: 100%;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+/* Элементы формы при фокусе */
+body.dark-theme input:focus, body.light-theme input:focus,
+body.dark-theme select:focus, body.light-theme select:focus {
+    background-color: #1e2b37; /* Более темный фон при фокусе */
+    outline-color: #3498db;
+}
+
+/* Кнопки */
+body.dark-theme button, body.dark-theme .submit-row input,
+body.light-theme button, body.light-theme .submit-row input {
+    background: linear-gradient(145deg, #2980b9, #3498db);
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Кнопки при наведении */
+body.dark-theme button:hover, body.light-theme button:hover,
+body.dark-theme .submit-row input:hover, body.light-theme .submit-row input:hover {
+    background: linear-gradient(145deg, #3498db, #2980b9);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Ссылки */
+body.dark-theme a, body.light-theme a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #bb86fc;
+    transition: color 0.3s ease;
+}
+
+/* Ссылки при наведении */
+body.dark-theme a:hover, body.light-theme a:hover {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+/* Стили для фокуса на элементах формы */
+input:focus, select:focus, textarea:focus {
+    transform: scale(1.05);
+    outline-color: #3498db;
+}
+
+/* Стили для блоков с дополнительными акцентами */
+body.dark-theme .accent-box, body.light-theme .accent-box {
+    background-color: #34495e;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+/* Плавные переходы */
+input, select, textarea, button, .submit-row input {
+    transition: all 0.3s ease;
+}
+
+/* Стили для переключателя тем */
+.theme-toggle-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.theme-toggle-btn:hover {
+    background-color: #2980b9;
+}
+
+/* Темная тема */
+body.dark-theme {
+    background-color: black;
+    color: white;
+}
+
+/* Светлая тема */
+body.light-theme {
+    background-color: #ecf0f1;
+    color: black;
+}
+
+/* Стили для кнопки в подвале */
+footer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+
+.theme-toggle-btn {
+    background-color: #3498db;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+    background-color: #2980b9;
+}
+
+footer {
+    z-index: 10; /* Для того, чтобы кнопка всегда была сверху */
+}
