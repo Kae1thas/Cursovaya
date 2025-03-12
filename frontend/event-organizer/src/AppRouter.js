@@ -1,17 +1,43 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import EventsPage from "./pages/EventsPage";
+import { Route, Routes, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";  // Добавлен AnimatePresence
 import LoginPage from "./pages/LoginPage";
+import EventsPage from "./pages/EventsPage";
 
 const AppRouter = () => {
+  const location = useLocation();
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LoginPage  />} />
-        <Route path="/events" element={<EventsPage />} />
+    <AnimatePresence> {/* Оборачиваем Routes в AnimatePresence */}
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/"
+          element={
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <LoginPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/events"
+          element={
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <EventsPage />
+            </motion.div>
+          }
+        />
       </Routes>
-    </Router>
+    </AnimatePresence>
   );
 };
 

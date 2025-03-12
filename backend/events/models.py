@@ -4,7 +4,7 @@ from django.db import models
 
 
 def validate_year(value):
-    if value.year < 1900 or value.year > 2100:  # Задаем разумные пределы
+    if value.year < 1900 or value.year > 2100:
         raise ValidationError("Год должен быть в диапазоне 1900-2100")
 
 class Event(models.Model):
