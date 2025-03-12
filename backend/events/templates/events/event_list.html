@@ -1,0 +1,17 @@
+{% extends 'events/base.html' %}
+
+{% block content %}
+    <h2>Список мероприятий</h2>
+    <div class="events-container">
+        {% for event in events %}
+            <div class="card">
+                <h3>{{ event.title }}</h3>
+                <p><strong>Дата:</strong> {{ event.start_time }} - {{ event.end_time }}</p>
+                <p><strong>Описание:</strong> {{ event.description }}</p>
+                <a href="{% url 'event_detail' event.id %}" class="btn">Посмотреть подробности</a>
+            </div>
+        {% empty %}
+            <p>Нет мероприятий для отображения.</p>
+        {% endfor %}
+    </div>
+{% endblock %}
