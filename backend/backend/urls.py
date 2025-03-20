@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from events.views import EventViewSet 
+from events.views import EventViewSet, CategoryViewSet, LocationViewSet
 from rest_framework.authtoken.views import obtain_auth_token
 from events.views import RegisterView
 from django.contrib import admin
@@ -9,6 +9,8 @@ from django.urls import path
 
 router = DefaultRouter()
 router.register(r'events', EventViewSet)
+router.register(r"categories", CategoryViewSet)
+router.register(r"locations", LocationViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),

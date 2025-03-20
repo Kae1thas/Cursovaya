@@ -1,18 +1,84 @@
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.db import models
+from django.contrib.auth.models import User  # Используем встроенную модель пользователя Django
 
 
+# Валидатор для года
 def validate_year(value):
     if value.year < 1900 or value.year > 2100:
         raise ValidationError("Год должен быть в диапазоне 1900-2100")
 
+
+# Модель для категорий мероприятий
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)  # Название категории, уникальное
+    slug = models.SlugField(max_length=100, unique=True)  # Для URL, если потребуется
+
+    class Meta:
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+
+    def __str__(self):
+        return self.name
+
+
+# Модель для локаций
+class Location(models.Model):
+    name = models.CharField(max_length=255)  # Название места (например, "Конференц-зал 1")
+    address = models.TextField(blank=True, null=True)  # Адрес локации
+    city = models.CharField(max_length=100, blank=True, null=True)  # Город
+    capacity = models.PositiveIntegerField(default=0, blank=True, null=True)  # Вместимость
+
+    class Meta:
+        verbose_name = "Локация"
+        verbose_name_plural = "Локации"
+
+    def __str__(self):
+        return f"{self.name} ({self.city or 'Город не указан'})"
+
+
+# Модель мероприятия
 class Event(models.Model):
+    # Основные поля
     title = models.CharField(max_length=255)  
     description = models.TextField(default="Описание отсутствует", blank=True, null=True)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-    location = models.CharField(max_length=255, default="Не указано", blank=True, null=True)
+    start_time = models.DateTimeField(validators=[validate_year])
+    end_time = models.DateTimeField(validators=[validate_year])
+    
+    # Связь с другими моделями
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="events", null=True, blank=True)
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, blank=True, null=True, related_name="events")  # Локация
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, blank=True, null=True, related_name="events")  # Категория
+
+    # Дополнительные поля
+    is_public = models.BooleanField(default=True)  # Публичное или приватное мероприятие
+    created_at = models.DateTimeField(auto_now_add=True)  # Дата создания
+    updated_at = models.DateTimeField(auto_now=True)  # Дата последнего обновления
+
+    class Meta:
+        verbose_name = "Мероприятие"
+        verbose_name_plural = "Мероприятия"
 
     def __str__(self):
         return self.title
+
+    # Проверка на корректность времени
+    def clean(self):
+        if self.start_time >= self.end_time:
+            raise ValidationError("Время окончания не может быть раньше времени начала")
+
+
+# Пример добавления связи "участники мероприятия" (опционально)
+class EventParticipant(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="participants")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="participated_events")
+    registered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Участник мероприятия"
+        verbose_name_plural = "Участники мероприятий"
+        unique_together = ("event", "user")  # Один пользователь не может зарегистрироваться дважды
+
+    def __str__(self):
+        return f"{self.user.username} на {self.event.title}"

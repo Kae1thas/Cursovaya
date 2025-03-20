@@ -1,8 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.views import APIView
-from .models import Event
-from .serializers import EventSerializer
-from .serializers import RegisterSerializer
+from .models import Event, Category, Location
+from .serializers import EventSerializer, CategorySerializer, LocationSerializer, RegisterSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import render
@@ -10,6 +9,17 @@ from django.shortcuts import render
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+class LocationViewSet(viewsets.ModelViewSet):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer
 
 class RegisterView(APIView):
     def post(self, request):
