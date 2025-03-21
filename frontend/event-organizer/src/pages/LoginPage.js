@@ -20,14 +20,14 @@ const LoginPage = () => {
       localStorage.setItem('token', token);
       console.log('Успешная авторизация, токен:', token);
 
-      navigate('/events');
+      navigate('/');
     } catch (error) {
       console.error('Ошибка авторизации:', error.response?.data || error.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+    <div className="flex items-center justify-center h-full bg-gray-100 p-6">
       <motion.div
         className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md"
         initial={{ opacity: 0, scale: 0.8 }}
@@ -69,6 +69,17 @@ const LoginPage = () => {
           >
             Войти
           </motion.button>
+          <div className="text-center mt-4">
+            <p className="text-gray-600">
+              Нет аккаунта?{" "}
+              <button
+                onClick={() => navigate("/register")}
+                className="text-blue-500 hover:underline"
+              >
+                Зарегистрируйтесь
+              </button>
+            </p>
+          </div>
         </form>
       </motion.div>
     </div>

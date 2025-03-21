@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 Modal.setAppElement("#root");
 
-const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, eventToDelete }) => {
+const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, itemToDelete }) => {
   return (
     <Modal
       isOpen={isOpen}
@@ -28,8 +28,8 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, eventToDelete }) => {
         className="p-6 flex flex-col"
       >
         <h2 className="text-lg font-semibold text-center mb-6">
-          Вы уверены, что хотите удалить мероприятие{" "}
-          <span className="font-bold">"{eventToDelete?.title}"</span>?
+          Вы уверены, что хотите удалить{" "}
+          <span className="font-bold">"{itemToDelete?.title || itemToDelete?.name}"</span>?
         </h2>
         <div className="flex justify-between">
           <button

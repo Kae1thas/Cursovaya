@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Event, Category, Location
 from .serializers import EventSerializer, CategorySerializer, LocationSerializer, RegisterSerializer
+from rest_framework.permissions import AllowAny
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
@@ -21,7 +22,15 @@ class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
 
+class PublicEventsView(APIView):
+    permission_classes = [AllowAny]  # Доступно без авторизации
+    def get(self, request):
+        public_events = Event.objects.filter(is_public=True)
+        serializer = EventSerializer(public_events, many=True)
+        return Response(serializer.data)    
+
 class RegisterView(APIView):
+    permission_classes = [AllowAny]  # Добавьте эту строку
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():

@@ -1,14 +1,18 @@
 import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";  // Добавлен AnimatePresence
+import { motion, AnimatePresence } from "framer-motion";
 import LoginPage from "./pages/LoginPage";
 import EventsPage from "./pages/EventsPage";
+import HomePage from "./pages/HomePage";
+import CategoriesPage from "./pages/CategoriesPage";
+import LocationsPage from "./pages/LocationsPage";
+import RegisterPage from "./pages/RegisterPage";
 
 const AppRouter = () => {
   const location = useLocation();
 
   return (
-    <AnimatePresence> {/* Оборачиваем Routes в AnimatePresence */}
+    <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route
           path="/"
@@ -19,7 +23,33 @@ const AppRouter = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
             >
+              <HomePage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               <LoginPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <RegisterPage />
             </motion.div>
           }
         />
@@ -33,6 +63,33 @@ const AppRouter = () => {
               transition={{ duration: 0.5 }}
             >
               <EventsPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/categories"
+          element={
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <CategoriesPage />
+            </motion.div>
+          }
+        />
+        
+        <Route
+          path="/locations"
+          element={
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <LocationsPage />
             </motion.div>
           }
         />

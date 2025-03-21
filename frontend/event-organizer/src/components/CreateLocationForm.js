@@ -1,40 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
 import { motion } from "framer-motion";
 
-const CreateLocationForm = ({ onLocationCreated, onClose, isOpen }) => {
+const CreateLocationForm = ({ onLocationCreated, onLocationUpdated, locationToEdit, onClose, isOpen }) => {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [capacity, setCapacity] = useState("");
 
+  useEffect(() => {
+    if (locationToEdit) {
+      setName(locationToEdit.name);
+      setAddress(locationToEdit.address || "");
+      setCity(locationToEdit.city || "");
+      setCapacity(locationToEdit.capacity || "");
+    } else {
+      setName("");
+      setAddress("");
+      setCity("");
+      setCapacity("");
+    }
+  }, [locationToEdit]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name) {
+    if (!name.trim()) {
       toast.error("Название локации обязательно!");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/locations/",
-        {
-          name,
-          address,
-          city,
-          capacity: capacity ? parseInt(capacity) : null,
-        },
-        { headers: { Authorization: `Token ${token}` } }
-      );
+      const data = {
+        name: name.trim(),
+        address: address.trim() || null,
+        city: city.trim() || null,
+        capacity: capacity ? parseInt(capacity) : null,
+      };
 
-      onLocationCreated(response.data);
+      const response = locationToEdit
+        ? await axios.put(
+            `http://127.0.0.1:8000/api/locations/${locationToEdit.id}/`,
+            data,
+            { headers: { Authorization: `Token ${token}` } }
+          )
+        : await axios.post(
+            "http://127.0.0.1:8000/api/locations/",
+            data,
+            { headers: { Authorization: `Token ${token}` } }
+          );
+
+      locationToEdit ? onLocationUpdated(response.data) : onLocationCreated(response.data);
     } catch (error) {
-      console.error("Ошибка создания локации:", error);
-      toast.error("Ошибка при создании локации.");
+      console.error("Ошибка создания/редактирования локации:", error);
+      toast.error("Ошибка при сохранении локации.");
     }
   };
 
@@ -42,7 +64,7 @@ const CreateLocationForm = ({ onLocationCreated, onClose, isOpen }) => {
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      contentLabel="Create Location"
+      contentLabel="Create or Edit Location"
       style={{
         overlay: { backgroundColor: "rgba(0, 0, 0, 0.6)", zIndex: 1000 },
         content: {
@@ -61,7 +83,9 @@ const CreateLocationForm = ({ onLocationCreated, onClose, isOpen }) => {
         transition={{ duration: 0.3 }}
         className="p-6 flex flex-col"
       >
-        <h2 className="text-2xl font-semibold text-center mb-6">Создать локацию</h2>
+        <h2 className="text-2xl font-semibold text-center mb-6">
+          {locationToEdit ? "Редактировать локацию" : "Создать локацию"}
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
@@ -105,7 +129,7 @@ const CreateLocationForm = ({ onLocationCreated, onClose, isOpen }) => {
               type="submit"
               className="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-600 transition-colors"
             >
-              Создать
+              {locationToEdit ? "Обновить" : "Создать"}
             </button>
           </div>
         </form>
