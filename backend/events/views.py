@@ -1,10 +1,10 @@
+from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.views import APIView
-from .models import Event, Category, Location
-from .serializers import EventSerializer, CategorySerializer, LocationSerializer, RegisterSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from django.shortcuts import render
+from .models import Event, Category, Location
+from .serializers import EventSerializer, CategorySerializer, LocationSerializer, RegisterSerializer
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
@@ -28,8 +28,6 @@ class RegisterView(APIView):
             serializer.save()
             return Response({'message': 'Пользователь успешно создан'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def event_list(request):
     events = Event.objects.all()  # Получаем все мероприятия из базы данных

@@ -12,7 +12,19 @@ class UserSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'slug']
+
+    def validate_name(self, value):
+        if Category.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Категория с таким названием уже существует.")
+        return value
+
+    def validate_slug(self, value):
+        if not value:
+            raise serializers.ValidationError("Поле 'slug' не может быть пустым.")
+        if Category.objects.filter(slug=value).exists():
+            raise serializers.ValidationError(f"Категория с slug '{value}' уже существует.")
+        return value
 
 # Сериализатор для локаций
 class LocationSerializer(serializers.ModelSerializer):
