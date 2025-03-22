@@ -1,10 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { getUserRole } from "../api/axiosClient";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem("token");
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getUserRole().then(setRole);
+    }
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -19,45 +27,44 @@ const Navbar = () => {
     >
       <div className="text-xl font-bold">Event Manager</div>
       <div className="space-x-4">
-        <button
-          onClick={() => navigate("/")}
-          className="hover:text-gray-300 transition-colors"
-        >
+        <button onClick={() => navigate("/")} className="hover:text-gray-300 transition-colors">
           Главная
         </button>
         {isAuthenticated && (
           <>
-            <button
-              onClick={() => navigate("/events")}
-              className="hover:text-gray-300 transition-colors"
-            >
+            <button onClick={() => navigate("/events")} className="hover:text-gray-300 transition-colors">
               Мероприятия
             </button>
-            <button
-              onClick={() => navigate("/categories")}
-              className="hover:text-gray-300 transition-colors"
-            >
-              Категории
-            </button>
-            <button
-              onClick={() => navigate("/locations")}
-              className="hover:text-gray-300 transition-colors"
-            >
-              Локации
-            </button>
-            <button
-              onClick={handleLogout}
-              className="hover:text-gray-300 transition-colors"
-            >
+            {role === 'user' && (
+              <button onClick={() => navigate("/requests")} className="hover:text-gray-300 transition-colors">
+                Мои заявки
+              </button>
+            )}
+            {(role === 'moderator' || role === 'admin') && (
+              <>
+                <button onClick={() => navigate("/categories")} className="hover:text-gray-300 transition-colors">
+                  Категории
+                </button>
+                <button onClick={() => navigate("/locations")} className="hover:text-gray-300 transition-colors">
+                  Локации
+                </button>
+                <button onClick={() => navigate("/requests")} className="hover:text-gray-300 transition-colors">
+                  Заявки
+                </button>
+              </>
+            )}
+            {role === 'admin' && (
+              <button onClick={() => navigate("/users")} className="hover:text-gray-300 transition-colors">
+                Пользователи
+              </button>
+            )}
+            <button onClick={handleLogout} className="hover:text-gray-300 transition-colors">
               Выйти
             </button>
           </>
         )}
         {!isAuthenticated && (
-          <button
-            onClick={() => navigate("/login")}
-            className="hover:text-gray-300 transition-colors"
-          >
+          <button onClick={() => navigate("/login")} className="hover:text-gray-300 transition-colors">
             Войти
           </button>
         )}

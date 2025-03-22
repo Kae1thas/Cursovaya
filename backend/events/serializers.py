@@ -1,12 +1,28 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Event, Category, Location, EventParticipant  # Импортируем все модели
+from .models import Event, Category, Location, EventParticipant, Request, UserProfile, User
 
-# Сериализатор для пользователей (для вложенного отображения автора)
+# Сериализатор для UserProfile
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['role']
+
+# Обновляем UserSerializer
 class UserSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer(read_only=True)
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'profile']
+
+# Сериализатор для Request
+class RequestSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    reviewed_by = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Request
+        fields = ['id', 'user', 'request_type', 'data', 'status', 'created_at', 'reviewed_by']
 
 # Сериализатор для категорий
 class CategorySerializer(serializers.ModelSerializer):
@@ -14,17 +30,16 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'slug']
 
-    def validate_name(self, value):
-        if Category.objects.filter(name=value).exists():
-            raise serializers.ValidationError("Категория с таким названием уже существует.")
-        return value
-
-    def validate_slug(self, value):
-        if not value:
-            raise serializers.ValidationError("Поле 'slug' не может быть пустым.")
-        if Category.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(f"Категория с slug '{value}' уже существует.")
-        return value
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user_profile = UserProfile.objects.get(user=request.user)
+            if user_profile.role not in ['moderator', 'admin']:
+                del representation['slug']  # Убираем slug для обычных пользователей
+        else:
+            del representation['slug']  # Убираем slug для неавторизованных
+        return representation
 
 # Сериализатор для локаций
 class LocationSerializer(serializers.ModelSerializer):
@@ -61,19 +76,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 # Сериализатор для событий
 class EventSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)  # Только для чтения, заполняется автоматически
-    category = CategorySerializer(read_only=True)  # Вложенное отображение категории
-    location = LocationSerializer(read_only=True)  # Вложенное отображение локации
-    participants = EventParticipantSerializer(many=True, read_only=True)  # Список участников
-
-    # Поля для записи (ID для category и location)
-    category_id = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(), source='category', write_only=True, required=False
-    )
-    location_id = serializers.PrimaryKeyRelatedField(
-        queryset=Location.objects.all(), source='location', write_only=True, required=False
-    )
-
+    author = UserSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+    location = LocationSerializer(read_only=True)
+    participants = EventParticipantSerializer(many=True, read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category', write_only=True, required=False)
+    location_id = serializers.PrimaryKeyRelatedField(queryset=Location.objects.all(), source='location', write_only=True, required=False)
+    
     class Meta:
         model = Event
         fields = [

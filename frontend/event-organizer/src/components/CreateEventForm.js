@@ -73,17 +73,15 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!title || !startTime || !endTime) {
       toast.error("Заполните все обязательные поля!");
       return;
     }
-
     if (dateError) {
       toast.error(dateError);
       return;
     }
-
+  
     try {
       const token = localStorage.getItem("token");
       const eventData = {
@@ -91,29 +89,29 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
         description,
         start_time: startTime,
         end_time: endTime,
-        location: locationId || null, // Отправляем ID локации
-        category: categoryId || null, // Отправляем ID категории
+        location: locationId || null,
+        category: categoryId || null,
         is_public: isPublic,
       };
-
-      const response = eventToEdit
-        ? await axios.put(
-            `http://127.0.0.1:8000/api/events/${eventToEdit.id}/`,
-            eventData,
-            { headers: { Authorization: `Token ${token}` } }
-          )
-        : await axios.post(
-            "http://127.0.0.1:8000/api/events/",
-            eventData,
-            { headers: { Authorization: `Token ${token}` } }
-          );
-
-      toast.success(eventToEdit ? "Мероприятие обновлено!" : "Мероприятие создано!");
-      eventToEdit ? onEventUpdated(response.data) : onEventCreated(response.data);
+  
+      const role = await getUserRole();
+      if (role === 'user') {
+        await axiosClient.post("/requests/", {
+          request_type: 'event',
+          data: eventData,
+        });
+        toast.success("Заявка на создание мероприятия отправлена!");
+      } else {
+        const response = eventToEdit
+          ? await axiosClient.put(`/events/${eventToEdit.id}/`, eventData)
+          : await axiosClient.post("/events/", eventData);
+        toast.success(eventToEdit ? "Мероприятие обновлено!" : "Мероприятие создано!");
+        eventToEdit ? onEventUpdated(response.data) : onEventCreated(response.data);
+      }
       onClose();
     } catch (error) {
       console.error("Ошибка:", error);
-      toast.error("Ошибка при сохранении мероприятия.");
+      toast.error("Ошибка при сохранении.");
     }
   };
 

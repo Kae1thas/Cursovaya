@@ -1,6 +1,21 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
-from .models import Event, Category, Location, EventParticipant
+from .models import Category, Location, Event, EventParticipant, UserProfile, Request
+
+# Регистрация UserProfile
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'role')
+    list_filter = ('role',)
+    search_fields = ('user__username',)
+
+# Регистрация Request
+@admin.register(Request)
+class RequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'request_type', 'status', 'created_at', 'reviewed_by')
+    list_filter = ('request_type', 'status')
+    search_fields = ('user__username',)
+
 
 # Встроенная таблица для участников мероприятия
 class EventParticipantInline(admin.TabularInline):

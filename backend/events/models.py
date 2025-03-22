@@ -1,7 +1,43 @@
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.db import models
-from django.contrib.auth.models import User  # Используем встроенную модель пользователя Django
+from django.contrib.auth.models import User 
+
+ROLE_CHOICES = (
+    ('user', 'Обычный пользователь'),
+    ('moderator', 'Модератор'),
+    ('admin', 'Админ'),
+)
+
+# Расширяем User через профиль
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"
+    
+# Заявка на создание
+class Request(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Ожидает'),
+        ('approved', 'Одобрено'),
+        ('rejected', 'Отклонено'),
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    request_type = models.CharField(max_length=20, choices=(
+        ('event', 'Мероприятие'),
+        ('location', 'Локация'),
+        ('category', 'Категория'),
+    ))
+    data = models.JSONField()  # Храним данные заявки (например, {"title": "Концерт", "start_time": "..."})
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_requests')
+
+    def __str__(self):
+        return f"{self.request_type} от {self.user.username} - {self.status}"
 
 
 # Валидатор для года
@@ -82,3 +118,5 @@ class EventParticipant(models.Model):
 
     def __str__(self):
         return f"{self.user.username} на {self.event.title}"
+    
+    

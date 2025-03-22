@@ -23,5 +23,15 @@ axiosClient.interceptors.request.use(
 export const getEvents = () => axiosClient.get("/events/");
 export const getLocations = () => axiosClient.get("/locations/");
 export const getCategories = () => axiosClient.get("/categories/");
+export const getRequests = () => axiosClient.get("/requests/");
+export const getUserRole = async () => {
+  try {
+    const response = await axiosClient.get("/user-role/");
+    return response.data.role || 'user';
+  } catch (error) {
+    console.error("Ошибка получения роли:", error);
+    return 'user';  // По умолчанию 'user', если запрос не удался
+  }
+};
 
 export default axiosClient;

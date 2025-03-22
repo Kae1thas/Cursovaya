@@ -1,17 +1,18 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from events.views import EventViewSet, CategoryViewSet, LocationViewSet, PublicEventsView
-from rest_framework.authtoken.views import obtain_auth_token
-from events.views import RegisterView
 from django.contrib import admin
+from django.urls import path, include
+from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.routers import DefaultRouter
 from events import views
-from django.urls import path
+from events.views import (
+    EventViewSet, CategoryViewSet, LocationViewSet, PublicEventsView, 
+    RegisterView, RequestViewSet, get_user_role
+)
 
 router = DefaultRouter()
 router.register(r'events', EventViewSet)
-router.register(r"categories", CategoryViewSet)
-router.register(r"locations", LocationViewSet)
-
+router.register(r'categories', CategoryViewSet)
+router.register(r'locations', LocationViewSet)
+router.register(r'requests', RequestViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -23,3 +24,8 @@ urlpatterns = [
     path('events/', views.event_list, name='event_list'),
     path('api/public-events/', PublicEventsView.as_view(), name='public-events'),  
 ]
+
+
+
+
+
