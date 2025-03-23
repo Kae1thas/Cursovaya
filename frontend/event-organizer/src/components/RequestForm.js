@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/components/RequestForm.js
+import React, { useState, useEffect } from "react";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
@@ -6,13 +7,36 @@ import { motion } from "framer-motion";
 
 const RequestForm = ({ requestType, onClose, isOpen }) => {
   const [data, setData] = useState({
-    name: "",  // Для category и location
-    city: "",  // Только для location
-    title: "", // Для event
-    description: "", // Для event
-    start_time: "", // Для event
-    end_time: "",   // Для event
+    name: "",
+    city: "",
+    title: "",
+    description: "",
+    start_time: "",
+    end_time: "",
+    location_id: "",
+    category_id: "",
+    is_public: true,
   });
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    if (isOpen && requestType === "event") {
+      const fetchData = async () => {
+        try {
+          const [locationsRes, categoriesRes] = await Promise.all([
+            axiosClient.get("/locations/"),
+            axiosClient.get("/categories/"),
+          ]);
+          setLocations(locationsRes.data);
+          setCategories(categoriesRes.data);
+        } catch (error) {
+          toast.error("Ошибка загрузки данных.");
+        }
+      };
+      fetchData();
+    }
+  }, [isOpen, requestType]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,10 +60,13 @@ const RequestForm = ({ requestType, onClose, isOpen }) => {
           description: data.description,
           start_time: data.start_time,
           end_time: data.end_time,
+          location_id: data.location_id || null,
+          category_id: data.category_id || null,
+          is_public: data.is_public,
         };
       }
 
-      console.log("Request data:", requestData); // Отладка
+      console.log("Request data:", requestData);
       await axiosClient.post("/requests/", requestData);
       toast.success("Заявка успешно отправлена!");
       onClose();
@@ -139,6 +166,39 @@ const RequestForm = ({ requestType, onClose, isOpen }) => {
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+              <select
+                value={data.location_id}
+                onChange={(e) => setData({ ...data, location_id: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Выберите локацию</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name} ({loc.city || "Без города"})
+                  </option>
+                ))}
+              </select>
+              <select
+                value={data.category_id}
+                onChange={(e) => setData({ ...data, category_id: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Выберите категорию</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={data.is_public}
+                  onChange={(e) => setData({ ...data, is_public: e.target.checked })}
+                  className="h-5 w-5 text-blue-500"
+                />
+                <span>Публичное мероприятие</span>
+              </label>
             </>
           )}
           <div className="flex justify-between mt-6">

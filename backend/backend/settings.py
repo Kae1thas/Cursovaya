@@ -38,10 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
        #новыеаппы
-    'events',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'events.apps.YourAppConfig',
 ]
 
 MIDDLEWARE = [

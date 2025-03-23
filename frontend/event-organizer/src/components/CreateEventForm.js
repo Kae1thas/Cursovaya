@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosClient, { getUserRole } from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
 import { motion } from "framer-motion";
@@ -9,99 +9,83 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [locationId, setLocationId] = useState(""); // Теперь ID локации
-  const [categoryId, setCategoryId] = useState(""); // Теперь ID категории
-  const [isPublic, setIsPublic] = useState(true); // Новое поле
-  const [locations, setLocations] = useState([]); // Список локаций
-  const [categories, setCategories] = useState([]); // Список категорий
+  const [locationId, setLocationId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [dateError, setDateError] = useState("");
 
-  // Загрузка категорий и локаций при открытии формы
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const [locationsRes, categoriesRes] = await Promise.all([
-          axios.get("http://127.0.0.1:8000/api/locations/", {
-            headers: { Authorization: `Token ${token}` },
-          }),
-          axios.get("http://127.0.0.1:8000/api/categories/", {
-            headers: { Authorization: `Token ${token}` },
-          }),
-        ]);
-        setLocations(locationsRes.data);
-        setCategories(categoriesRes.data);
-      } catch (error) {
-        console.error("Ошибка загрузки данных:", error);
-        toast.error("Ошибка загрузки категорий или локаций.");
-      }
-    };
-    if (isOpen) fetchData();
-  }, [isOpen]);
+    if (isOpen) {
+      const fetchData = async () => {
+        try {
+          const [locationsRes, categoriesRes] = await Promise.all([
+            axiosClient.get("/locations/"),
+            axiosClient.get("/categories/"),
+          ]);
+          setLocations(locationsRes.data);
+          setCategories(categoriesRes.data);
+        } catch (error) {
+          toast.error("Ошибка загрузки данных.");
+        }
+      };
+      fetchData();
 
-  // Заполнение формы при редактировании
-  useEffect(() => {
-    if (eventToEdit) {
-      setTitle(eventToEdit.title);
-      setDescription(eventToEdit.description || "");
-      setStartTime(eventToEdit.start_time.slice(0, 16));
-      setEndTime(eventToEdit.end_time.slice(0, 16));
-      setLocationId(eventToEdit.location?.id || "");
-      setCategoryId(eventToEdit.category?.id || "");
-      setIsPublic(eventToEdit.is_public);
-    } else {
-      setTitle("");
-      setDescription("");
-      setStartTime("");
-      setEndTime("");
-      setLocationId("");
-      setCategoryId("");
-      setIsPublic(true);
-    }
-  }, [eventToEdit]);
-
-  // Проверка дат
-  useEffect(() => {
-    if (startTime && endTime) {
-      if (new Date(endTime) <= new Date(startTime)) {
-        setDateError("Дата окончания должна быть позже даты начала!");
+      if (eventToEdit) {
+        setTitle(eventToEdit.title);
+        setDescription(eventToEdit.description || "");
+        setStartTime(eventToEdit.start_time.slice(0, 16));
+        setEndTime(eventToEdit.end_time.slice(0, 16));
+        setLocationId(eventToEdit.location?.id || "");
+        setCategoryId(eventToEdit.category?.id || "");
+        setIsPublic(eventToEdit.is_public);
       } else {
-        setDateError("");
+        setTitle("");
+        setDescription("");
+        setStartTime("");
+        setEndTime("");
+        setLocationId("");
+        setCategoryId("");
+        setIsPublic(true);
       }
     }
-  }, [startTime, endTime]);
+  }, [isOpen, eventToEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     if (!title || !startTime || !endTime) {
       toast.error("Заполните все обязательные поля!");
       return;
     }
-    if (dateError) {
-      toast.error(dateError);
+  
+    if (new Date(endTime) <= new Date(startTime)) {
+      toast.error("Дата окончания должна быть позже даты начала!");
       return;
     }
   
     try {
-      const token = localStorage.getItem("token");
       const eventData = {
         title,
         description,
         start_time: startTime,
         end_time: endTime,
-        location: locationId || null,
-        category: categoryId || null,
+        location_id: locationId || null,
+        category_id: categoryId || null,  // Изменено с category на category_id
         is_public: isPublic,
       };
   
+      console.log("Form data:", eventData);  // Добавляем отладку
+  
       const role = await getUserRole();
-      if (role === 'user') {
+      if (role === "user") {
         await axiosClient.post("/requests/", {
-          request_type: 'event',
+          request_type: "event",
           data: eventData,
         });
         toast.success("Заявка на создание мероприятия отправлена!");
-      } else {
+      } else if (role === "moderator" || role === "admin") {
         const response = eventToEdit
           ? await axiosClient.put(`/events/${eventToEdit.id}/`, eventData)
           : await axiosClient.post("/events/", eventData);

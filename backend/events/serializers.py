@@ -10,10 +10,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 # Обновляем UserSerializer
 class UserSerializer(serializers.ModelSerializer):
-    profile = UserProfileSerializer(read_only=True)
+    profile = UserProfileSerializer(read_only=True, source='userprofile')  # Указываем источник
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'profile']
+        fields = ['id', 'username', 'email', 'date_joined', 'profile']
 
 # Сериализатор для Request
 class RequestSerializer(serializers.ModelSerializer):

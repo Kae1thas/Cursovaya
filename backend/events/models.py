@@ -1,7 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.db import models
-from django.contrib.auth.models import User 
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver 
 
 ROLE_CHOICES = (
     ('user', 'Обычный пользователь'),
@@ -12,7 +14,11 @@ ROLE_CHOICES = (
 # Расширяем User через профиль
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+    role = models.CharField(
+        max_length=20,
+        choices=[('user', 'User'), ('moderator', 'Moderator'), ('admin', 'Admin')],
+        default='user'
+    )
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
@@ -120,3 +126,7 @@ class EventParticipant(models.Model):
         return f"{self.user.username} на {self.event.title}"
     
     
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)

@@ -8,6 +8,7 @@ import CategoriesPage from "./pages/CategoriesPage";
 import LocationsPage from "./pages/LocationsPage";
 import RegisterPage from "./pages/RegisterPage";
 import RequestsPage from "./pages/RequestsPage";
+import UsersPage from "./pages/UsersPage";
 
 const AppRouter = () => {
   const location = useLocation();
@@ -22,6 +23,7 @@ const AppRouter = () => {
         <Route path="/categories" element={<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}><CategoriesPage /></motion.div>} />
         <Route path="/locations" element={<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}><LocationsPage /></motion.div>} />
         <Route path="/requests" element={<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}><RequestsPage /></motion.div>} />
+        <Route path="/users" element={<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}><UsersPage /></motion.div>} />        
       </Routes>
     </AnimatePresence>
   );

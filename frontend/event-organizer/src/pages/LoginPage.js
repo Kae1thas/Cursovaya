@@ -18,6 +18,7 @@ const LoginPage = () => {
 
       const token = response.data.token;
       localStorage.setItem('token', token);
+      localStorage.setItem("username", response.data.username);
       console.log('Успешная авторизация, токен:', token);
 
       navigate('/');

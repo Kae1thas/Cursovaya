@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosClient, { getUserRole } from "../api/axiosClient"; // Заменяем axios на axiosClient
 import { toast } from "react-toastify";
 import CreateCategoryForm from "../components/CreateCategoryForm";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
@@ -12,15 +12,15 @@ const CategoriesPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState(null); // Добавляем role
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:8000/api/categories/", {
-          headers: { Authorization: `Token ${token}` },
-        });
+        const userRole = await getUserRole(); // Получаем роль
+        setRole(userRole);
+        const response = await axiosClient.get("/categories/"); // Используем axiosClient
         setCategories(response.data);
       } catch (error) {
         console.error("Ошибка загрузки категорий:", error);
@@ -49,10 +49,7 @@ const CategoriesPage = () => {
 
   const handleCategoryDeleted = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://127.0.0.1:8000/api/categories/${categoryToDelete.id}/`, {
-        headers: { Authorization: `Token ${token}` },
-      });
+      await axiosClient.delete(`/categories/${categoryToDelete.id}/`);
       setCategories((prev) => prev.filter((cat) => cat.id !== categoryToDelete.id));
       toast.success("Категория удалена.");
       setIsDeleteModalOpen(false);
@@ -72,15 +69,17 @@ const CategoriesPage = () => {
   return (
     <div className="h-full max-w-4xl mx-auto p-6 overflow-y-auto">
       <h1 className="text-3xl font-bold text-center mb-8">Категории</h1>
-      <motion.button
-        onClick={() => setIsModalOpen(true)}
-        className="bg-purple-500 text-white py-2 px-6 rounded-md mb-6 hover:bg-purple-600 transition-colors"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        Добавить категорию
-      </motion.button>
+      {role && (role === "moderator" || role === "admin") && (
+        <motion.button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-purple-500 text-white py-2 px-6 rounded-md mb-6 hover:bg-purple-600 transition-colors"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          Добавить категорию
+        </motion.button>
+      )}
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, index) => (
@@ -119,27 +118,31 @@ const CategoriesPage = () => {
               >
                 <div>
                   <h2 className="text-xl font-semibold">{category.name}</h2>
-                  <p className="text-gray-500">Slug: {category.slug}</p>
+                  {role && (role === "moderator" || role === "admin") && (
+                    <p className="text-gray-500">Slug: {category.slug}</p>
+                  )}
                 </div>
-                <div className="flex space-x-4">
-                  <motion.button
-                    onClick={() => openEditModal(category)}
-                    className="text-blue-500 hover:text-blue-700"
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    Редактировать
-                  </motion.button>
-                  <motion.button
-                    onClick={() => {
-                      setCategoryToDelete(category);
-                      setIsDeleteModalOpen(true);
-                    }}
-                    className="text-red-500 hover:text-red-700"
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    Удалить
-                  </motion.button>
-                </div>
+                {role && (role === "moderator" || role === "admin") && (
+                  <div className="flex space-x-4">
+                    <motion.button
+                      onClick={() => openEditModal(category)}
+                      className="text-blue-500 hover:text-blue-700"
+                      whileHover={{ scale: 1.1 }}
+                    >
+                      Редактировать
+                    </motion.button>
+                    <motion.button
+                      onClick={() => {
+                        setCategoryToDelete(category);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                      whileHover={{ scale: 1.1 }}
+                    >
+                      Удалить
+                    </motion.button>
+                  </div>
+                )}
               </motion.div>
             ))
           )}

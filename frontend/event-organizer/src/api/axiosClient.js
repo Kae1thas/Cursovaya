@@ -33,5 +33,9 @@ export const getUserRole = async () => {
     return 'user';  // По умолчанию 'user', если запрос не удался
   }
 };
+export const getUserProfile = async () => {
+  const response = await axiosClient.get("/user-role/"); // Предполагаем, что возвращает и имя
+  return response.data;
+};
 
 export default axiosClient;
