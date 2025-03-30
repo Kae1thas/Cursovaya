@@ -18,12 +18,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 # Сериализатор для Request
 class RequestSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    reviewed_by = UserSerializer(read_only=True)
+    user = serializers.StringRelatedField()
+    reviewed_by = serializers.StringRelatedField()
 
     class Meta:
         model = Request
-        fields = ['id', 'user', 'request_type', 'data', 'status', 'created_at', 'reviewed_by']
+        fields = '__all__'
 
 # Сериализатор для категорий
 class CategorySerializer(serializers.ModelSerializer):

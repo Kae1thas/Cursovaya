@@ -25,25 +25,33 @@ class UserProfile(models.Model):
     
 # Заявка на создание
 class Request(models.Model):
-    STATUS_CHOICES = (
-        ('pending', 'Ожидает'),
-        ('approved', 'Одобрено'),
-        ('rejected', 'Отклонено'),
-    )
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    request_type = models.CharField(max_length=20, choices=(
+    ACTION_CHOICES = [
+        ('create', 'Создание'),
+        ('update', 'Редактирование'),
+        ('delete', 'Удаление'),
+    ]
+    TYPE_CHOICES = [
         ('event', 'Мероприятие'),
-        ('location', 'Локация'),
         ('category', 'Категория'),
-    ))
-    data = models.JSONField()  # Храним данные заявки (например, {"title": "Концерт", "start_time": "..."})
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
+        ('location', 'Локация'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests')
+    request_type = models.CharField(max_length=50, choices=TYPE_CHOICES)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, default='create')  # Новый тип действия
+    data = models.JSONField()  # Данные для создания/редактирования
+    event = models.ForeignKey('Event', on_delete=models.SET_NULL, null=True, blank=True)  # Связь с мероприятием для update/delete
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')],
+        default='pending'
+    )
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_requests')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.request_type} от {self.user.username} - {self.status}"
+        return f"{self.request_type} - {self.action} - {self.user.username}"
 
 
 # Валидатор для года

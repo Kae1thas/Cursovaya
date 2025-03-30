@@ -1,14 +1,11 @@
-// src/components/RequestForm.js
 import React, { useState, useEffect } from "react";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
 import { motion } from "framer-motion";
 
-const RequestForm = ({ requestType, onClose, isOpen }) => {
+const RequestForm = ({ requestType, action = "create", eventToEdit, onClose, isOpen }) => {
   const [data, setData] = useState({
-    name: "",
-    city: "",
     title: "",
     description: "",
     start_time: "",
@@ -35,35 +32,64 @@ const RequestForm = ({ requestType, onClose, isOpen }) => {
         }
       };
       fetchData();
+
+      if (eventToEdit && action !== "create") {
+        setData({
+          title: eventToEdit.title,
+          description: eventToEdit.description || "",
+          start_time: eventToEdit.start_time.slice(0, 16),
+          end_time: eventToEdit.end_time.slice(0, 16),
+          location_id: eventToEdit.location?.id || "",
+          category_id: eventToEdit.category?.id || "",
+          is_public: eventToEdit.is_public,
+        });
+      } else {
+        setData({
+          title: "",
+          description: "",
+          start_time: "",
+          end_time: "",
+          location_id: "",
+          category_id: "",
+          is_public: true,
+        });
+      }
     }
-  }, [isOpen, requestType]);
+  }, [isOpen, requestType, eventToEdit, action]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let requestData = { request_type: requestType };
-      if (requestType === "category") {
-        requestData.data = { name: data.name };
-      } else if (requestType === "location") {
+      let requestData = { request_type: requestType, action };
+      if (requestType === "event") {
+        if (action === "create" || action === "update") {
+          if (!data.title || !data.start_time || !data.end_time) {
+            toast.error("Заполните все обязательные поля!");
+            return;
+          }
+          if (new Date(data.end_time) <= new Date(data.start_time)) {
+            toast.error("Дата окончания должна быть позже даты начала!");
+            return;
+          }
+          requestData.data = {
+            title: data.title,
+            description: data.description,
+            start_time: data.start_time,
+            end_time: data.end_time,
+            location_id: data.location_id || null,
+            category_id: data.category_id || null,
+            is_public: data.is_public,
+          };
+          if (action === "update" || action === "delete") {
+            requestData.event = eventToEdit.id;
+          }
+        } else if (action === "delete") {
+          requestData.event = eventToEdit.id;
+          requestData.data = {};
+        }
+      } else {
+        // Логика для category и location остаётся прежней
         requestData.data = { name: data.name, city: data.city || null };
-      } else if (requestType === "event") {
-        if (!data.title || !data.start_time || !data.end_time) {
-          toast.error("Заполните все обязательные поля!");
-          return;
-        }
-        if (new Date(data.end_time) <= new Date(data.start_time)) {
-          toast.error("Дата окончания должна быть позже даты начала!");
-          return;
-        }
-        requestData.data = {
-          title: data.title,
-          description: data.description,
-          start_time: data.start_time,
-          end_time: data.end_time,
-          location_id: data.location_id || null,
-          category_id: data.category_id || null,
-          is_public: data.is_public,
-        };
       }
 
       console.log("Request data:", requestData);
@@ -80,7 +106,7 @@ const RequestForm = ({ requestType, onClose, isOpen }) => {
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      contentLabel={`Request ${requestType}`}
+      contentLabel={`${action} ${requestType}`}
       style={{
         overlay: { backgroundColor: "rgba(0, 0, 0, 0.6)", zIndex: 1000 },
         content: {
@@ -100,40 +126,18 @@ const RequestForm = ({ requestType, onClose, isOpen }) => {
         className="p-6 flex flex-col"
       >
         <h2 className="text-2xl font-semibold text-center mb-6">
-          {requestType === "category" ? "Создать категорию" :
-           requestType === "location" ? "Создать локацию" : "Создать мероприятие"}
+          {requestType === "event"
+            ? action === "create"
+              ? "Создать мероприятие"
+              : action === "update"
+              ? "Редактировать мероприятие"
+              : "Удалить мероприятие"
+            : requestType === "category"
+            ? "Создать категорию"
+            : "Создать локацию"}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {requestType === "category" && (
-            <input
-              type="text"
-              placeholder="Название категории *"
-              value={data.name}
-              onChange={(e) => setData({ ...data, name: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          )}
-          {requestType === "location" && (
-            <>
-              <input
-                type="text"
-                placeholder="Название локации *"
-                value={data.name}
-                onChange={(e) => setData({ ...data, name: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Город"
-                value={data.city}
-                onChange={(e) => setData({ ...data, city: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </>
-          )}
-          {requestType === "event" && (
+          {requestType === "event" && action !== "delete" && (
             <>
               <input
                 type="text"
@@ -199,6 +203,41 @@ const RequestForm = ({ requestType, onClose, isOpen }) => {
                 />
                 <span>Публичное мероприятие</span>
               </label>
+            </>
+          )}
+          {requestType === "event" && action === "delete" && (
+            <p className="text-gray-500">
+              Вы уверены, что хотите удалить мероприятие "{eventToEdit?.title}"?
+            </p>
+          )}
+          {/* Логика для category и location остаётся без изменений */}
+          {requestType === "category" && (
+            <input
+              type="text"
+              placeholder="Название категории *"
+              value={data.name}
+              onChange={(e) => setData({ ...data, name: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          )}
+          {requestType === "location" && (
+            <>
+              <input
+                type="text"
+                placeholder="Название локации *"
+                value={data.name}
+                onChange={(e) => setData({ ...data, name: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Город"
+                value={data.city}
+                onChange={(e) => setData({ ...data, city: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </>
           )}
           <div className="flex justify-between mt-6">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { toast } from "react-toastify"; // Добавляем toast для уведомлений
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -18,12 +19,14 @@ const LoginPage = () => {
 
       const token = response.data.token;
       localStorage.setItem('token', token);
-      localStorage.setItem("username", response.data.username);
-      console.log('Успешная авторизация, токен:', token);
+      localStorage.setItem("username", username); // Сохраняем введённый username
+      console.log('Успешная авторизация, токен:', token, 'username:', username);
 
+      toast.success("Вход выполнен успешно!");
       navigate('/');
     } catch (error) {
       console.error('Ошибка авторизации:', error.response?.data || error.message);
+      toast.error("Ошибка при входе. Проверьте логин и пароль.");
     }
   };
 

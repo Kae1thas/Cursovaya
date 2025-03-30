@@ -6,7 +6,7 @@ import CreateEventForm from "../components/CreateEventForm";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import CreateLocationForm from "../components/CreateLocationForm";
 import CreateCategoryForm from "../components/CreateCategoryForm";
-import RequestForm from "../components/RequestForm"; // Добавляем новый компонент
+import RequestForm from "../components/RequestForm";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -20,8 +20,9 @@ const EventsPage = () => {
   const [eventToDelete, setEventToDelete] = useState(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // Для заявок
-  const [requestType, setRequestType] = useState(null); // Тип заявки
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [requestType, setRequestType] = useState(null);
+  const [requestAction, setRequestAction] = useState("create"); // Добавляем действие для заявки
   const [activeTab, setActiveTab] = useState("events");
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState(null);
@@ -135,13 +136,17 @@ const EventsPage = () => {
     setIsCategoryModalOpen(false);
   };
 
-  const openRequestModal = (type) => {
+  const openRequestModal = (type, action = "create", event = null) => {
     setRequestType(type);
+    setRequestAction(action);
+    setEventToEdit(event); // Используем eventToEdit для передачи мероприятия в форму
     setIsRequestModalOpen(true);
   };
 
   const closeRequestModal = () => {
     setRequestType(null);
+    setRequestAction("create");
+    setEventToEdit(null);
     setIsRequestModalOpen(false);
   };
 
@@ -187,7 +192,7 @@ const EventsPage = () => {
           {role === "user" && (
             <>
               <motion.button
-                onClick={() => openRequestModal("event")}
+                onClick={() => openRequestModal("event", "create")}
                 className="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-600 transition-colors"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -336,22 +341,51 @@ const EventsPage = () => {
                         Автор: {event.author?.username || "Неизвестно"}
                       </p>
                     </div>
-                    {isAuthenticated && (role === "moderator" || role === "admin" || event.author?.username === localStorage.getItem("username")) && (
+                    {isAuthenticated && (
                       <div className="flex space-x-4">
-                        <motion.button
-                          onClick={() => openEditModal(event)}
-                          className="text-blue-500 hover:text-blue-700"
-                          whileHover={{ scale: 1.1 }}
-                        >
-                          Редактировать
-                        </motion.button>
-                        <motion.button
-                          onClick={() => openDeleteConfirmModal(event)}
-                          className="text-red-500 hover:text-red-700"
-                          whileHover={{ scale: 1.1 }}
-                        >
-                          Удалить
-                        </motion.button>
+                        {/* Для модераторов и админов */}
+                        {(role === "moderator" || role === "admin") && (
+                          <>
+                            <motion.button
+                              onClick={() => openEditModal(event)}
+                              className="text-blue-500 hover:text-blue-700"
+                              whileHover={{ scale: 1.1 }}
+                            >
+                              Редактировать
+                            </motion.button>
+                            <motion.button
+                              onClick={() => openDeleteConfirmModal(event)}
+                              className="text-red-500 hover:text-red-700"
+                              whileHover={{ scale: 1.1 }}
+                            >
+                              Удалить
+                            </motion.button>
+                          </>
+                        )}
+                        {/* Для пользователей */}
+                        {role === "user" && (
+                          <>
+                            {console.log("User:", localStorage.getItem("username"), "Author:", event.author?.username)}
+                            {event.author?.username === localStorage.getItem("username") && (
+                              <>
+                                <motion.button
+                                  onClick={() => openRequestModal("event", "update", event)}
+                                  className="text-yellow-500 hover:text-yellow-700"
+                                  whileHover={{ scale: 1.1 }}
+                                >
+                                  Редактировать
+                                </motion.button>
+                                <motion.button
+                                  onClick={() => openRequestModal("event", "delete", event)}
+                                  className="text-red-500 hover:text-red-700"
+                                  whileHover={{ scale: 1.1 }}
+                                >
+                                  Удалить
+                                </motion.button>
+                              </>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </motion.div>
@@ -435,6 +469,8 @@ const EventsPage = () => {
 
       <RequestForm
         requestType={requestType}
+        action={requestAction}
+        eventToEdit={eventToEdit}
         isOpen={isRequestModalOpen}
         onClose={closeRequestModal}
       />

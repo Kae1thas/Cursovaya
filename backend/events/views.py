@@ -85,19 +85,56 @@ class RequestViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         profile = UserProfile.objects.get(user=self.request.user)
-        if profile.role in ['moderator', 'admin']:
-            instance = serializer.save(reviewed_by=self.request.user)
-            if instance.status == 'approved':
-                data = instance.data
+        if profile.role not in ['moderator', 'admin']:
+            return Response({"error": "Нет прав для обработки заявки"}, status=status.HTTP_403_FORBIDDEN)
+
+        instance = serializer.save(reviewed_by=self.request.user)
+        if instance.status == 'approved':
+            data = instance.data
+            try:
                 if instance.request_type == 'event':
-                    Event.objects.create(**data, author=instance.user)
+                    if instance.action == 'create':
+                        Event.objects.create(
+                            title=data.get('title'),
+                            description=data.get('description', ''),
+                            start_time=data.get('start_time'),
+                            end_time=data.get('end_time'),
+                            author=instance.user,
+                            location_id=data.get('location_id'),
+                            category_id=data.get('category_id'),
+                            is_public=data.get('is_public', True)
+                        )
+                    elif instance.action == 'update':
+                        event = instance.event
+                        if event.author != instance.user:
+                            return Response({"error": "Можно редактировать только свои мероприятия"}, status=status.HTTP_403_FORBIDDEN)
+                        event.title = data.get('title', event.title)
+                        event.description = data.get('description', event.description)
+                        event.start_time = data.get('start_time', event.start_time)
+                        event.end_time = data.get('end_time', event.end_time)
+                        event.location_id = data.get('location_id', event.location_id)
+                        event.category_id = data.get('category_id', event.category_id)
+                        event.is_public = data.get('is_public', event.is_public)
+                        event.save()
+                    elif instance.action == 'delete':
+                        event = instance.event
+                        if event.author != instance.user:
+                            return Response({"error": "Можно удалять только свои мероприятия"}, status=status.HTTP_403_FORBIDDEN)
+                        event.delete()
                 elif instance.request_type == 'category':
-                    Category.objects.create(**data)
+                    if instance.action == 'create':
+                        Category.objects.create(
+                            name=data.get('name'),
+                            slug=data.get('name', '').lower().replace(' ', '-')
+                        )
                 elif instance.request_type == 'location':
-                    Location.objects.create(**data)
-                instance.delete()  # Удаляем заявку после одобрения
-            elif instance.status == 'rejected':
-                instance.delete()  # Удаляем заявку при отклонении
+                    if instance.action == 'create':
+                        Location.objects.create(
+                            name=data.get('name'),
+                            city=data.get('city', None)
+                        )
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
