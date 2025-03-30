@@ -8,25 +8,53 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Event, Category, Location, Request, UserProfile
 from .serializers import EventSerializer, CategorySerializer, LocationSerializer, RequestSerializer, RegisterSerializer, UserSerializer
-from .permissions import RoleBasedPermission, CanManageUsers
+from .permissions import RoleBasedPermission, IsRoleAdmin
 from rest_framework.permissions import IsAdminUser
+
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     permission_classes = [RoleBasedPermission]
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def perform_create(self, serializer):
         profile = UserProfile.objects.get(user=self.request.user)
         if profile.role == 'user':
-            # Создаём заявку с текущим пользователем
             request_data = {
                 'request_type': 'event',
                 'data': serializer.validated_data,
-                'user': self.request.user  # Добавляем user
+                'user': self.request.user
             }
             Request.objects.create(**request_data)
         elif profile.role in ['moderator', 'admin']:
-            serializer.save(author=self.request.user)
+            event_data = serializer.validated_data
+            event = serializer.save(author=self.request.user)
+            if event_data.get('location_is_one_time'):
+                location = Location.objects.create(
+                    name=event_data.get('location_name'),
+                    city=event_data.get('location_city'),
+                    address=event_data.get('location_address'),
+                    capacity=event_data.get('location_capacity'),
+                    is_one_time=True,
+                    event_loc_one=event
+                )
+                event.location = location
+            if event_data.get('category_is_one_time'):
+                category = Category.objects.create(
+                    name=event_data.get('category_name'),
+                    slug=event_data.get('category_name', '').lower().replace(' ', '-'),
+                    is_one_time=True,
+                    event_cat_one=event
+                )
+                event.category = category
+            event.save()
+            serializer = EventSerializer(event)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -46,7 +74,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             serializer.save()
 
 class LocationViewSet(viewsets.ModelViewSet):
-    queryset = Location.objects.all()
+    queryset = Location.objects.filter(is_one_time=False)  # Исключаем одноразовые локации
     serializer_class = LocationSerializer
     permission_classes = [RoleBasedPermission]
 
@@ -94,16 +122,37 @@ class RequestViewSet(viewsets.ModelViewSet):
             try:
                 if instance.request_type == 'event':
                     if instance.action == 'create':
-                        Event.objects.create(
+                        event = Event.objects.create(
                             title=data.get('title'),
                             description=data.get('description', ''),
                             start_time=data.get('start_time'),
                             end_time=data.get('end_time'),
                             author=instance.user,
+                            is_public=data.get('is_public', True),
                             location_id=data.get('location_id'),
-                            category_id=data.get('category_id'),
-                            is_public=data.get('is_public', True)
+                            category_id=data.get('category_id')
                         )
+                        if data.get('location_is_one_time'):
+                            location = Location.objects.create(
+                                name=data.get('location_name'),
+                                city=data.get('location_city'),
+                                address=data.get('location_address'),
+                                capacity=data.get('location_capacity'),
+                                is_one_time=True,
+                                event_loc_one=event
+                            )
+                            event.location = location
+                            event.save()
+                        if data.get('category_is_one_time'):
+                            category = Category.objects.create(
+                                name=data.get('category_name'),
+                                slug=data.get('category_name', '').lower().replace(' ', '-'),
+                                is_one_time=True,
+                                event_cat_one=event
+                            )
+                            event.category = category
+                            event.save()
+                        return Response(EventSerializer(event).data, status=status.HTTP_201_CREATED)
                     elif instance.action == 'update':
                         event = instance.event
                         if event.author != instance.user:
@@ -116,25 +165,28 @@ class RequestViewSet(viewsets.ModelViewSet):
                         event.category_id = data.get('category_id', event.category_id)
                         event.is_public = data.get('is_public', event.is_public)
                         event.save()
+                        return Response(EventSerializer(event).data, status=status.HTTP_200_OK)
                     elif instance.action == 'delete':
                         event = instance.event
                         if event.author != instance.user:
                             return Response({"error": "Можно удалять только свои мероприятия"}, status=status.HTTP_403_FORBIDDEN)
                         event.delete()
-                elif instance.request_type == 'category':
-                    if instance.action == 'create':
-                        Category.objects.create(
-                            name=data.get('name'),
-                            slug=data.get('name', '').lower().replace(' ', '-')
-                        )
-                elif instance.request_type == 'location':
-                    if instance.action == 'create':
-                        Location.objects.create(
-                            name=data.get('name'),
-                            city=data.get('city', None)
-                        )
+                        return Response(status=status.HTTP_204_NO_CONTENT)
+                elif instance.request_type == 'category' and instance.action == 'create':
+                    category = Category.objects.create(
+                        name=data.get('name'),
+                        slug=data.get('name', '').lower().replace(' ', '-')
+                    )
+                    return Response(CategorySerializer(category).data, status=status.HTTP_201_CREATED)
+                elif instance.request_type == 'location' and instance.action == 'create':
+                    location = Location.objects.create(
+                        name=data.get('name'),
+                        city=data.get('city', None)
+                    )
+                    return Response(LocationSerializer(location).data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -142,14 +194,14 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            UserProfile.objects.get_or_create(user=user, defaults={'role': 'user'})  # Создаём профиль
+            UserProfile.objects.get_or_create(user=user, defaults={'role': 'user'})
             return Response({'message': 'Пользователь успешно создан'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.all().select_related('userprofile')
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsRoleAdmin]
 
     def list(self, request, *args, **kwargs):
         print("UserViewSet list method called")
@@ -157,17 +209,27 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         print("Response data:", response.data)
         return response
 
+class UpdateUserRoleView(APIView):
+    permission_classes = [IsRoleAdmin]
+    def patch(self, request, user_id):
+        user = User.objects.get(id=user_id)
+        role = request.data.get("role")
+        print(f"Before: User {user.id}, Role: {user.userprofile.role}")
+        if role in ["user", "moderator", "admin"]:
+            user.userprofile.role = role
+            user.userprofile.save()
+            print(f"After: User {user.id}, Role: {user.userprofile.role}")
+            return Response({"message": f"Роль изменена на {role}"})
+        return Response({"error": "Недопустимая роль"}, status=status.HTTP_400_BAD_REQUEST)
+
 def event_list(request):
-    events = Event.objects.all()  # Получаем все мероприятия из базы данных
+    events = Event.objects.all()
     return render(request, 'events/event_list.html', {'events': events})
 
 def event_detail(request, event_id):
     event = Event.objects.get(id=event_id)
-    
-    # Форматируем дату для отображения
-    start_time = event.start_time.strftime('%b. %d, %Y, %I:%M %p')  # Пример: Feb. 21, 2025, 11:15 AM
-    end_time = event.end_time.strftime('%b. %d, %Y, %I:%M %p')  # Пример: Feb. 28, 2025, 11:15 AM
-    
+    start_time = event.start_time.strftime('%b. %d, %Y, %I:%M %p')
+    end_time = event.end_time.strftime('%b. %d, %Y, %I:%M %p')
     return render(request, 'events/event_detail.html', {
         'event': event,
         'start_time': start_time,

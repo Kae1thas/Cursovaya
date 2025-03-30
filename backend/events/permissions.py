@@ -29,3 +29,13 @@ class CanManageUsers(permissions.BasePermission):
             return profile.role == 'admin'
         except UserProfile.DoesNotExist:
             return False  # Нет профиля — нет админских прав
+        
+
+class IsRoleAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            print(f"Checking permission - User: {request.user}, Role: {profile.role}")
+            return profile.role == "admin"
+        except UserProfile.DoesNotExist:
+            return False

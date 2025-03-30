@@ -1,4 +1,3 @@
-// src/pages/EventsPage.js
 import React, { useState, useEffect } from "react";
 import axiosClient, { getUserRole } from "../api/axiosClient";
 import { toast } from "react-toastify";
@@ -22,12 +21,24 @@ const EventsPage = () => {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestType, setRequestType] = useState(null);
-  const [requestAction, setRequestAction] = useState("create"); // Добавляем действие для заявки
+  const [requestAction, setRequestAction] = useState("create");
   const [activeTab, setActiveTab] = useState("events");
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState(null);
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem("token");
+
+  const fetchEvents = async () => {
+    try {
+      const eventsResponse = isAuthenticated
+        ? await axiosClient.get("/events/")
+        : await axiosClient.get("/public-events/");
+      setEvents(eventsResponse.data);
+    } catch (error) {
+      console.error("Ошибка загрузки событий:", error);
+      toast.error("Ошибка при загрузке событий.");
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,11 +55,11 @@ const EventsPage = () => {
           const [eventsRes, categoriesRes, locationsRes] = await Promise.all([
             axiosClient.get("/events/"),
             axiosClient.get("/categories/"),
-            axiosClient.get("/locations/"),
+            axiosClient.get("/locations/"), // Теперь возвращает только is_one_time=False
           ]);
           eventsResponse = eventsRes;
-          setCategories(categoriesRes.data);
-          setLocations(locationsRes.data);
+          setCategories(categoriesRes.data.filter(cat => !cat.is_one_time));
+          setLocations(locationsRes.data.filter(loc => !loc.is_one_time)); // Двойная фильтрация
         } else {
           eventsResponse = await axiosClient.get("/public-events/");
           setCategories([]);
@@ -139,7 +150,7 @@ const EventsPage = () => {
   const openRequestModal = (type, action = "create", event = null) => {
     setRequestType(type);
     setRequestAction(action);
-    setEventToEdit(event); // Используем eventToEdit для передачи мероприятия в форму
+    setEventToEdit(event);
     setIsRequestModalOpen(true);
   };
 
@@ -148,6 +159,7 @@ const EventsPage = () => {
     setRequestAction("create");
     setEventToEdit(null);
     setIsRequestModalOpen(false);
+    fetchEvents(); // Обновляем список событий
   };
 
   return (
@@ -156,7 +168,6 @@ const EventsPage = () => {
 
       {isAuthenticated && (
         <div className="flex space-x-4 mb-6">
-          {/* Кнопки для модераторов и админов */}
           {(role === "moderator" || role === "admin") && (
             <>
               <motion.button
@@ -188,7 +199,6 @@ const EventsPage = () => {
               </motion.button>
             </>
           )}
-          {/* Кнопки для пользователей */}
           {role === "user" && (
             <>
               <motion.button
@@ -233,19 +243,6 @@ const EventsPage = () => {
         <button
           onClick={() => {
             if (!isAuthenticated) {
-              toast.info("Пожалуйста, войдите для просмотра категорий.");
-              navigate("/login");
-            } else {
-              setActiveTab("categories");
-            }
-          }}
-          className={`py-2 px-4 rounded-md ${activeTab === "categories" ? "bg-gray-200" : "bg-gray-100"}`}
-        >
-          Категории
-        </button>
-        <button
-          onClick={() => {
-            if (!isAuthenticated) {
               toast.info("Пожалуйста, войдите для просмотра локаций.");
               navigate("/login");
             } else {
@@ -255,6 +252,19 @@ const EventsPage = () => {
           className={`py-2 px-4 rounded-md ${activeTab === "locations" ? "bg-gray-200" : "bg-gray-100"}`}
         >
           Локации
+        </button>
+        <button
+          onClick={() => {
+            if (!isAuthenticated) {
+              toast.info("Пожалуйста, войдите для просмотра категорий.");
+              navigate("/login");
+            } else {
+              setActiveTab("categories");
+            }
+          }}
+          className={`py-2 px-4 rounded-md ${activeTab === "categories" ? "bg-gray-200" : "bg-gray-100"}`}
+        >
+          Категории
         </button>
       </div>
 
@@ -329,7 +339,8 @@ const EventsPage = () => {
                         {new Date(event.end_time).toLocaleString()}
                       </p>
                       <p className="text-gray-500">
-                        Локация: {event.location?.name || "Не указано"}
+                        Локация: {event.location?.name || "Не указано"}{" "}
+                        {event.location?.capacity ? `(Вместимость: ${event.location.capacity})` : ""}
                       </p>
                       <p className="text-gray-500">
                         Категория: {event.category?.name || "Не указано"}
@@ -343,7 +354,6 @@ const EventsPage = () => {
                     </div>
                     {isAuthenticated && (
                       <div className="flex space-x-4">
-                        {/* Для модераторов и админов */}
                         {(role === "moderator" || role === "admin") && (
                           <>
                             <motion.button
@@ -362,10 +372,8 @@ const EventsPage = () => {
                             </motion.button>
                           </>
                         )}
-                        {/* Для пользователей */}
                         {role === "user" && (
                           <>
-                            {console.log("User:", localStorage.getItem("username"), "Author:", event.author?.username)}
                             {event.author?.username === localStorage.getItem("username") && (
                               <>
                                 <motion.button
@@ -432,6 +440,7 @@ const EventsPage = () => {
                   >
                     <h2 className="text-xl font-semibold">{location.name}</h2>
                     <p className="text-gray-500">Город: {location.city || "Не указано"}</p>
+                    <p className="text-gray-500">Вместимость: {location.capacity || "Не указано"}</p>
                   </motion.div>
                 ))
               )}

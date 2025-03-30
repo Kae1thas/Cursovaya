@@ -1,19 +1,25 @@
-// src/pages/UsersPage.js
 import React, { useState, useEffect } from "react";
-import axiosClient from "../api/axiosClient";
+import axiosClient, { getUserRole } from "../api/axiosClient";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 
 const UsersPage = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
+        const userRole = await getUserRole();
+        setRole(userRole);
+        if (userRole !== "admin") {
+          toast.error("Доступ только для админов!");
+          return;
+        }
         const response = await axiosClient.get("/users/");
-        console.log("API response:", response.data); // Логируем ответ для отладки
+        console.log("API response:", response.data);
         setUsers(response.data);
       } catch (error) {
         console.error("Ошибка загрузки пользователей:", error);
@@ -22,8 +28,27 @@ const UsersPage = () => {
         setLoading(false);
       }
     };
-    fetchUsers();
+    fetchData();
   }, []);
+
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      await axiosClient.patch(`/users/${userId}/update-role/`, { role: newRole });
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.id === userId ? { ...user, profile: { ...user.profile, role: newRole } } : user
+        )
+      );
+      toast.success(`Роль изменена на ${newRole}!`);
+    } catch (error) {
+      console.error("Ошибка обновления роли:", error);
+      toast.error("Ошибка при обновлении роли.");
+    }
+  };
+
+  if (role !== "admin") {
+    return <p className="text-center text-red-500">Доступ запрещён</p>;
+  }
 
   return (
     <motion.div
@@ -55,6 +80,7 @@ const UsersPage = () => {
                   <th className="p-3 text-left">Почта</th>
                   <th className="p-3 text-left">Дата регистрации</th>
                   <th className="p-3 text-left">Роль</th>
+                  <th className="p-3 text-left">Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -67,6 +93,17 @@ const UsersPage = () => {
                     </td>
                     <td className="p-3">
                       {user.profile && user.profile.role ? user.profile.role : "Не указана"}
+                    </td>
+                    <td className="p-3">
+                      <select
+                        value={user.profile?.role || "user"}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                        className="border rounded-md p-1"
+                      >
+                        <option value="user">Пользователь</option>
+                        <option value="moderator">Модератор</option>
+                        <option value="admin">Админ</option>
+                      </select>
                     </td>
                   </tr>
                 ))}

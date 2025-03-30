@@ -9,8 +9,8 @@ const RequestsPage = () => {
   const [role, setRole] = useState(null);
   const [expandedRequest, setExpandedRequest] = useState(null);
   const [eventDetails, setEventDetails] = useState({});
-  const [locations, setLocations] = useState([]); // Список локаций
-  const [categories, setCategories] = useState([]); // Список категорий
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const translateStatus = (status) => {
     switch (status) {
@@ -70,7 +70,6 @@ const RequestsPage = () => {
         setLocations(locationsResponse.data);
         setCategories(categoriesResponse.data);
 
-        // Предзагрузка деталей для заявок update/delete
         filteredRequests.forEach((req) => {
           if ((req.action === "update" || req.action === "delete") && req.event) {
             fetchEventDetails(req.event);
@@ -179,8 +178,18 @@ const RequestsPage = () => {
                         ? new Date(request.data.end_time).toLocaleString()
                         : new Date(currentEvent.end_time).toLocaleString()}
                     </li>
-                    <li>Локация: {getLocationName(request.data.location_id || currentEvent.location?.id)}</li>
-                    <li>Категория: {getCategoryName(request.data.category_id || currentEvent.category?.id)}</li>
+                    <li>
+                      Локация:{" "}
+                      {request.data.location_id != null
+                        ? getLocationName(Number(request.data.location_id))
+                        : getLocationName(currentEvent.location?.id)}
+                    </li>
+                    <li>
+                      Категория:{" "}
+                      {request.data.category_id != null
+                        ? getCategoryName(Number(request.data.category_id))
+                        : getCategoryName(currentEvent.category?.id)}
+                    </li>
                     <li>
                       Публичное:{" "}
                       {request.data.hasOwnProperty("is_public")
@@ -302,15 +311,13 @@ const RequestsPage = () => {
                     )}
                   </div>
                   <div className="flex space-x-4">
-                    {(role === "moderator" || role === "admin") && (
-                      <motion.button
-                        onClick={() => toggleDetails(request.id)}
-                        className="text-blue-500 hover:text-blue-700"
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        {expandedRequest === request.id ? "Скрыть" : "Подробнее"}
-                      </motion.button>
-                    )}
+                    <motion.button
+                      onClick={() => toggleDetails(request.id)}
+                      className="text-blue-500 hover:text-blue-700"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      {expandedRequest === request.id ? "Скрыть" : "Подробнее"}
+                    </motion.button>
                     {(role === "moderator" || role === "admin") &&
                       request.status === "pending" && (
                         <>
@@ -332,7 +339,7 @@ const RequestsPage = () => {
                       )}
                   </div>
                 </div>
-                {(role === "moderator" || role === "admin") && expandedRequest === request.id && (
+                {expandedRequest === request.id && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}

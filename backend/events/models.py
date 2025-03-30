@@ -62,8 +62,10 @@ def validate_year(value):
 
 # Модель для категорий мероприятий
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)  # Название категории, уникальное
-    slug = models.SlugField(max_length=100, unique=True)  # Для URL, если потребуется
+    name = models.CharField(max_length=100, unique=True) 
+    slug = models.SlugField(max_length=100, unique=True)  
+    is_one_time = models.BooleanField(default=False)
+    event_cat_one = models.OneToOneField('Event', on_delete=models.CASCADE, related_name='unique_category', null=True, blank=True)
 
     class Meta:
         verbose_name = "Категория"
@@ -75,10 +77,12 @@ class Category(models.Model):
 
 # Модель для локаций
 class Location(models.Model):
-    name = models.CharField(max_length=255)  # Название места (например, "Конференц-зал 1")
-    address = models.TextField(blank=True, null=True)  # Адрес локации
-    city = models.CharField(max_length=100, blank=True, null=True)  # Город
-    capacity = models.PositiveIntegerField(default=0, blank=True, null=True)  # Вместимость
+    name = models.CharField(max_length=255)
+    address = models.TextField(blank=True, null=True)  
+    city = models.CharField(max_length=100, blank=True, null=True)  
+    capacity = models.PositiveIntegerField(default=0, blank=True, null=True) 
+    is_one_time = models.BooleanField(default=False)
+    event_loc_one = models.OneToOneField('Event', on_delete=models.CASCADE, related_name='unique_location', null=True, blank=True)
 
     class Meta:
         verbose_name = "Локация"

@@ -15,17 +15,24 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
   const [locations, setLocations] = useState([]);
   const [categories, setCategories] = useState([]);
   const [dateError, setDateError] = useState("");
+  const [isOneTimeLocation, setIsOneTimeLocation] = useState(false);
+  const [locationName, setLocationName] = useState("");
+  const [locationCity, setLocationCity] = useState("");
+  const [locationAddress, setLocationAddress] = useState("");
+  const [locationCapacity, setLocationCapacity] = useState("");
+  const [isOneTimeCategory, setIsOneTimeCategory] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       const fetchData = async () => {
         try {
           const [locationsRes, categoriesRes] = await Promise.all([
-            axiosClient.get("/locations/"),
+            axiosClient.get("/locations/"), // Теперь возвращает только is_one_time=False
             axiosClient.get("/categories/"),
           ]);
-          setLocations(locationsRes.data);
-          setCategories(categoriesRes.data);
+          setLocations(locationsRes.data.filter(loc => !loc.is_one_time)); // Двойная фильтрация для уверенности
+          setCategories(categoriesRes.data.filter(cat => !cat.is_one_time));
         } catch (error) {
           toast.error("Ошибка загрузки данных.");
         }
@@ -40,6 +47,13 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
         setLocationId(eventToEdit.location?.id || "");
         setCategoryId(eventToEdit.category?.id || "");
         setIsPublic(eventToEdit.is_public);
+        setIsOneTimeLocation(false);
+        setIsOneTimeCategory(false);
+        setLocationName("");
+        setLocationCity("");
+        setLocationAddress("");
+        setLocationCapacity("");
+        setCategoryName("");
       } else {
         setTitle("");
         setDescription("");
@@ -48,6 +62,13 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
         setLocationId("");
         setCategoryId("");
         setIsPublic(true);
+        setIsOneTimeLocation(false);
+        setIsOneTimeCategory(false);
+        setLocationName("");
+        setLocationCity("");
+        setLocationAddress("");
+        setLocationCapacity("");
+        setCategoryName("");
       }
     }
   }, [isOpen, eventToEdit]);
@@ -64,24 +85,47 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
       toast.error("Дата окончания должна быть позже даты начала!");
       return;
     }
+
+    const eventData = {
+      title,
+      description,
+      start_time: startTime,
+      end_time: endTime,
+      is_public: isPublic,
+    };
+
+    if (isOneTimeLocation) {
+      if (!locationName) {
+        toast.error("Укажите название одноразовой локации!");
+        return;
+      }
+      eventData.location_is_one_time = true;
+      eventData.location_name = locationName;
+      eventData.location_city = locationCity;
+      eventData.location_address = locationAddress;
+      eventData.location_capacity = locationCapacity || null;
+    } else {
+      eventData.location_id = locationId || null;
+    }
+
+    if (isOneTimeCategory) {
+      if (!categoryName) {
+        toast.error("Укажите название одноразовой категории!");
+        return;
+      }
+      eventData.category_is_one_time = true;
+      eventData.category_name = categoryName;
+    } else {
+      eventData.category_id = categoryId || null;
+    }
   
     try {
-      const eventData = {
-        title,
-        description,
-        start_time: startTime,
-        end_time: endTime,
-        location_id: locationId || null,
-        category_id: categoryId || null,  // Изменено с category на category_id
-        is_public: isPublic,
-      };
-  
-      console.log("Form data:", eventData);  // Добавляем отладку
-  
+      console.log("Отправляемые данные:", eventData);
       const role = await getUserRole();
       if (role === "user") {
         await axiosClient.post("/requests/", {
           request_type: "event",
+          action: "create",
           data: eventData,
         });
         toast.success("Заявка на создание мероприятия отправлена!");
@@ -94,7 +138,7 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
       }
       onClose();
     } catch (error) {
-      console.error("Ошибка:", error);
+      console.error("Ошибка:", error.response?.data || error.message);
       toast.error("Ошибка при сохранении.");
     }
   };
@@ -157,30 +201,98 @@ const CreateEventForm = ({ onEventCreated, eventToEdit, onEventUpdated, onClose,
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          <select
-            value={locationId}
-            onChange={(e) => setLocationId(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Выберите локацию</option>
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name} ({loc.city || "Без города"})
-              </option>
-            ))}
-          </select>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Выберите категорию</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+          <div>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isOneTimeLocation}
+                onChange={(e) => setIsOneTimeLocation(e.target.checked)}
+                className="h-5 w-5 text-blue-500"
+              />
+              <span>Одноразовая локация</span>
+            </label>
+            {isOneTimeLocation ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="Название локации *"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Город"
+                  value={locationCity}
+                  onChange={(e) => setLocationCity(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <textarea
+                  placeholder="Адрес"
+                  value={locationAddress}
+                  onChange={(e) => setLocationAddress(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="2"
+                />
+                <input
+                  type="number"
+                  placeholder="Вместимость"
+                  value={locationCapacity}
+                  onChange={(e) => setLocationCapacity(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+              </>
+            ) : (
+              <select
+                value={locationId}
+                onChange={(e) => setLocationId(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Выберите локацию</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name} ({loc.city || "Без города"})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          <div>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isOneTimeCategory}
+                onChange={(e) => setIsOneTimeCategory(e.target.checked)}
+                className="h-5 w-5 text-blue-500"
+              />
+              <span>Одноразовая категория</span>
+            </label>
+            {isOneTimeCategory ? (
+              <input
+                type="text"
+                placeholder="Название категории *"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            ) : (
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Выберите категорию</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"

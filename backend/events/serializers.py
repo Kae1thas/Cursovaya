@@ -8,9 +8,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['role']
 
-# Обновляем UserSerializer
+# Сериализатор для User
 class UserSerializer(serializers.ModelSerializer):
-    profile = UserProfileSerializer(read_only=True, source='userprofile')  # Указываем источник
+    profile = UserProfileSerializer(read_only=True, source='userprofile')
 
     class Meta:
         model = User
@@ -29,7 +29,7 @@ class RequestSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug']
+        fields = ['id', 'name', 'slug', 'is_one_time', 'event_cat_one']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -37,16 +37,16 @@ class CategorySerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             user_profile = UserProfile.objects.get(user=request.user)
             if user_profile.role not in ['moderator', 'admin']:
-                del representation['slug']  # Убираем slug для обычных пользователей
+                del representation['slug']
         else:
-            del representation['slug']  # Убираем slug для неавторизованных
+            del representation['slug']
         return representation
 
 # Сериализатор для локаций
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ['id', 'name', 'city']
+        fields = ['id', 'name', 'city', 'capacity', 'is_one_time', 'event_loc_one']
 
 # Сериализатор для участников мероприятий
 class EventParticipantSerializer(serializers.ModelSerializer):
@@ -56,7 +56,7 @@ class EventParticipantSerializer(serializers.ModelSerializer):
         model = EventParticipant
         fields = ['id', 'user', 'registered_at']
 
-# Сериализатор для регистрации (оставляем без изменений)
+# Сериализатор для регистрации
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
 
@@ -93,6 +93,5 @@ class EventSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        # Автоматически устанавливаем автора как текущего пользователя
         validated_data['author'] = self.context['request'].user
         return super().create(validated_data)
