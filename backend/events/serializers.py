@@ -29,7 +29,7 @@ class RequestSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'is_one_time', 'event_cat_one']
+        fields = ['id', 'name', 'slug']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -46,7 +46,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ['id', 'name', 'city', 'capacity', 'is_one_time', 'event_loc_one']
+        fields = ['id', 'name', 'city', 'capacity']
 
 # Сериализатор для участников мероприятий
 class EventParticipantSerializer(serializers.ModelSerializer):

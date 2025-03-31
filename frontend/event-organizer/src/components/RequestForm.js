@@ -13,11 +13,6 @@ const RequestForm = ({ requestType, action = "create", eventToEdit, onClose, isO
     location_id: "",
     category_id: "",
     is_public: true,
-    is_one_time_location: false, // Добавляем флаг для одноразовой локации
-    location_name: "",
-    location_city: "",
-    location_address: "",
-    location_capacity: "",
   });
   const [locations, setLocations] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -30,8 +25,8 @@ const RequestForm = ({ requestType, action = "create", eventToEdit, onClose, isO
             axiosClient.get("/locations/"),
             axiosClient.get("/categories/"),
           ]);
-          setLocations(locationsRes.data.filter(loc => !loc.is_one_time)); // Фильтруем одноразовые локации
-          setCategories(categoriesRes.data.filter(cat => !cat.is_one_time));
+          setLocations(locationsRes.data);
+          setCategories(categoriesRes.data);
         } catch (error) {
           toast.error("Ошибка загрузки данных.");
         }
@@ -47,11 +42,6 @@ const RequestForm = ({ requestType, action = "create", eventToEdit, onClose, isO
           location_id: eventToEdit.location?.id || "",
           category_id: eventToEdit.category?.id || "",
           is_public: eventToEdit.is_public,
-          is_one_time_location: false, // При редактировании не используем одноразовую локацию
-          location_name: "",
-          location_city: "",
-          location_address: "",
-          location_capacity: "",
         });
       } else {
         setData({
@@ -62,11 +52,6 @@ const RequestForm = ({ requestType, action = "create", eventToEdit, onClose, isO
           location_id: "",
           category_id: "",
           is_public: true,
-          is_one_time_location: false,
-          location_name: "",
-          location_city: "",
-          location_address: "",
-          location_capacity: "",
         });
       }
     }
@@ -91,23 +76,10 @@ const RequestForm = ({ requestType, action = "create", eventToEdit, onClose, isO
             description: data.description,
             start_time: data.start_time,
             end_time: data.end_time,
+            location_id: data.location_id || null,
+            category_id: data.category_id || null,
             is_public: data.is_public,
           };
-          if (data.is_one_time_location) {
-            if (!data.location_name) {
-              toast.error("Укажите название одноразовой локации!");
-              return;
-            }
-            requestData.data.location_is_one_time = true;
-            requestData.data.location_name = data.location_name;
-            requestData.data.location_city = data.location_city;
-            requestData.data.location_address = data.location_address;
-            requestData.data.location_capacity = data.location_capacity || null;
-          } else {
-            requestData.data.location_id = data.location_id || null;
-          }
-          requestData.data.category_id = data.category_id || null;
-
           if (action === "update" || action === "delete") {
             requestData.event = eventToEdit.id;
           }
@@ -197,64 +169,18 @@ const RequestForm = ({ requestType, action = "create", eventToEdit, onClose, isO
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
-              <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={data.is_one_time_location}
-                    onChange={(e) => setData({ ...data, is_one_time_location: e.target.checked })}
-                    className="h-5 w-5 text-blue-500"
-                  />
-                  <span>Одноразовая локация</span>
-                </label>
-                {data.is_one_time_location ? (
-                  <>
-                    <input
-                      type="text"
-                      placeholder="Название локации *"
-                      value={data.location_name}
-                      onChange={(e) => setData({ ...data, location_name: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="Город"
-                      value={data.location_city}
-                      onChange={(e) => setData({ ...data, location_city: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <textarea
-                      placeholder="Адрес"
-                      value={data.location_address}
-                      onChange={(e) => setData({ ...data, location_address: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows="2"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Вместимость"
-                      value={data.location_capacity}
-                      onChange={(e) => setData({ ...data, location_capacity: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      min="0"
-                    />
-                  </>
-                ) : (
-                  <select
-                    value={data.location_id}
-                    onChange={(e) => setData({ ...data, location_id: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Выберите локацию</option>
-                    {locations.map((loc) => (
-                      <option key={loc.id} value={loc.id}>
-                        {loc.name} ({loc.city || "Без города"})
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
+              <select
+                value={data.location_id}
+                onChange={(e) => setData({ ...data, location_id: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Выберите локацию</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name} ({loc.city || "Без города"})
+                  </option>
+                ))}
+              </select>
               <select
                 value={data.category_id}
                 onChange={(e) => setData({ ...data, category_id: e.target.value })}

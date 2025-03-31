@@ -55,11 +55,11 @@ const EventsPage = () => {
           const [eventsRes, categoriesRes, locationsRes] = await Promise.all([
             axiosClient.get("/events/"),
             axiosClient.get("/categories/"),
-            axiosClient.get("/locations/"), // Теперь возвращает только is_one_time=False
+            axiosClient.get("/locations/"),
           ]);
           eventsResponse = eventsRes;
-          setCategories(categoriesRes.data.filter(cat => !cat.is_one_time));
-          setLocations(locationsRes.data.filter(loc => !loc.is_one_time)); // Двойная фильтрация
+          setCategories(categoriesRes.data);
+          setLocations(locationsRes.data);
         } else {
           eventsResponse = await axiosClient.get("/public-events/");
           setCategories([]);

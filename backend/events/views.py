@@ -33,28 +33,7 @@ class EventViewSet(viewsets.ModelViewSet):
             }
             Request.objects.create(**request_data)
         elif profile.role in ['moderator', 'admin']:
-            event_data = serializer.validated_data
-            event = serializer.save(author=self.request.user)
-            if event_data.get('location_is_one_time'):
-                location = Location.objects.create(
-                    name=event_data.get('location_name'),
-                    city=event_data.get('location_city'),
-                    address=event_data.get('location_address'),
-                    capacity=event_data.get('location_capacity'),
-                    is_one_time=True,
-                    event_loc_one=event
-                )
-                event.location = location
-            if event_data.get('category_is_one_time'):
-                category = Category.objects.create(
-                    name=event_data.get('category_name'),
-                    slug=event_data.get('category_name', '').lower().replace(' ', '-'),
-                    is_one_time=True,
-                    event_cat_one=event
-                )
-                event.category = category
-            event.save()
-            serializer = EventSerializer(event)
+            serializer.save(author=self.request.user)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -74,7 +53,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             serializer.save()
 
 class LocationViewSet(viewsets.ModelViewSet):
-    queryset = Location.objects.filter(is_one_time=False)  # Исключаем одноразовые локации
+    queryset = Location.objects.all()  # Больше не фильтруем is_one_time
     serializer_class = LocationSerializer
     permission_classes = [RoleBasedPermission]
 
@@ -132,26 +111,6 @@ class RequestViewSet(viewsets.ModelViewSet):
                             location_id=data.get('location_id'),
                             category_id=data.get('category_id')
                         )
-                        if data.get('location_is_one_time'):
-                            location = Location.objects.create(
-                                name=data.get('location_name'),
-                                city=data.get('location_city'),
-                                address=data.get('location_address'),
-                                capacity=data.get('location_capacity'),
-                                is_one_time=True,
-                                event_loc_one=event
-                            )
-                            event.location = location
-                            event.save()
-                        if data.get('category_is_one_time'):
-                            category = Category.objects.create(
-                                name=data.get('category_name'),
-                                slug=data.get('category_name', '').lower().replace(' ', '-'),
-                                is_one_time=True,
-                                event_cat_one=event
-                            )
-                            event.category = category
-                            event.save()
                         return Response(EventSerializer(event).data, status=status.HTTP_201_CREATED)
                     elif instance.action == 'update':
                         event = instance.event
