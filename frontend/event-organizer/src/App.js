@@ -12,7 +12,6 @@ function App() {
       <div className="h-screen">
         <Navbar />
         <main className="absolute top-16 bottom-16 left-0 right-0 overflow-y-auto">
-          {/* flex-grow растягивает main между шапкой и подвалом */}
           <AppRouter />
         </main>
         <Footer />

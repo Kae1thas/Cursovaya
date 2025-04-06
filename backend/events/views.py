@@ -53,7 +53,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             serializer.save()
 
 class LocationViewSet(viewsets.ModelViewSet):
-    queryset = Location.objects.all()  # Больше не фильтруем is_one_time
+    queryset = Location.objects.all() 
     serializer_class = LocationSerializer
     permission_classes = [RoleBasedPermission]
 
@@ -156,7 +156,7 @@ class RegisterView(APIView):
             UserProfile.objects.get_or_create(user=user, defaults={'role': 'user'})
             return Response({'message': 'Пользователь успешно создан'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+    EventViewSet
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all().select_related('userprofile')
     serializer_class = UserSerializer

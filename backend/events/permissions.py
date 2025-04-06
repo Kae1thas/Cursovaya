@@ -10,7 +10,7 @@ class RoleBasedPermission(permissions.BasePermission):
             profile = UserProfile.objects.get(user=request.user)
             role = profile.role
         except UserProfile.DoesNotExist:
-            role = 'user'  # По умолчанию считаем обычным пользователем
+            role = 'user'
 
         if role == 'user':
             return view.action in ['list', 'retrieve']
@@ -28,7 +28,7 @@ class CanManageUsers(permissions.BasePermission):
             profile = UserProfile.objects.get(user=request.user)
             return profile.role == 'admin'
         except UserProfile.DoesNotExist:
-            return False  # Нет профиля — нет админских прав
+            return False 
         
 
 class IsRoleAdmin(permissions.BasePermission):

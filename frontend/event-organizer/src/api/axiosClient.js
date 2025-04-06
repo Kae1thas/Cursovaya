@@ -30,11 +30,11 @@ export const getUserRole = async () => {
     return response.data.role || 'user';
   } catch (error) {
     console.error("Ошибка получения роли:", error);
-    return 'user';  // По умолчанию 'user', если запрос не удался
+    return 'user'; 
   }
 };
 export const getUserProfile = async () => {
-  const response = await axiosClient.get("/user-role/"); // Предполагаем, что возвращает и имя
+  const response = await axiosClient.get("/user-role/"); 
   return response.data;
 };
 

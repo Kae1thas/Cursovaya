@@ -11,7 +11,7 @@ ROLE_CHOICES = (
     ('admin', 'Админ'),
 )
 
-# Расширяем User через профиль
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(
@@ -19,6 +19,10 @@ class UserProfile(models.Model):
         choices=[('user', 'User'), ('moderator', 'Moderator'), ('admin', 'Admin')],
         default='user'
     )
+
+    class Meta:
+        verbose_name = "Роль"
+        verbose_name_plural = "Роли"    
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
@@ -38,9 +42,9 @@ class Request(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests')
     request_type = models.CharField(max_length=50, choices=TYPE_CHOICES)
-    action = models.CharField(max_length=20, choices=ACTION_CHOICES, default='create')  # Новый тип действия
-    data = models.JSONField()  # Данные для создания/редактирования
-    event = models.ForeignKey('Event', on_delete=models.SET_NULL, null=True, blank=True)  # Связь с мероприятием для update/delete
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, default='create')
+    data = models.JSONField() 
+    event = models.ForeignKey('Event', on_delete=models.SET_NULL, null=True, blank=True)  
     status = models.CharField(
         max_length=20,
         choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')],
@@ -49,6 +53,10 @@ class Request(models.Model):
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_requests')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Заявка"
+        verbose_name_plural = "Заявки"
 
     def __str__(self):
         return f"{self.request_type} - {self.action} - {self.user.username}"
@@ -98,13 +106,13 @@ class Event(models.Model):
     
     # Связь с другими моделями
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="events", null=True, blank=True)
-    location = models.ForeignKey(Location, on_delete=models.SET_NULL, blank=True, null=True, related_name="events")  # Локация
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, blank=True, null=True, related_name="events")  # Категория
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, blank=True, null=True, related_name="events")
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, blank=True, null=True, related_name="events")  
 
     # Дополнительные поля
-    is_public = models.BooleanField(default=True)  # Публичное или приватное мероприятие
-    created_at = models.DateTimeField(auto_now_add=True)  # Дата создания
-    updated_at = models.DateTimeField(auto_now=True)  # Дата последнего обновления
+    is_public = models.BooleanField(default=True)  
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True)  
 
     class Meta:
         verbose_name = "Мероприятие"
@@ -118,20 +126,6 @@ class Event(models.Model):
         if self.start_time >= self.end_time:
             raise ValidationError("Время окончания не может быть раньше времени начала")
 
-
-# Пример добавления связи "участники мероприятия" (опционально)
-class EventParticipant(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="participants")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="participated_events")
-    registered_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Участник мероприятия"
-        verbose_name_plural = "Участники мероприятий"
-        unique_together = ("event", "user")  # Один пользователь не может зарегистрироваться дважды
-
-    def __str__(self):
-        return f"{self.user.username} на {self.event.title}"
     
     
 @receiver(post_save, sender=User)

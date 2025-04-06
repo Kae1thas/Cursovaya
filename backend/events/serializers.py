@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Event, Category, Location, EventParticipant, Request, UserProfile, User
+from .models import Event, Category, Location, Request, UserProfile, User
 
 # Сериализатор для UserProfile
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -48,13 +48,6 @@ class LocationSerializer(serializers.ModelSerializer):
         model = Location
         fields = ['id', 'name', 'city', 'capacity']
 
-# Сериализатор для участников мероприятий
-class EventParticipantSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = EventParticipant
-        fields = ['id', 'user', 'registered_at']
 
 # Сериализатор для регистрации
 class RegisterSerializer(serializers.ModelSerializer):
@@ -80,7 +73,6 @@ class EventSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
     location = LocationSerializer(read_only=True)
-    participants = EventParticipantSerializer(many=True, read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category', write_only=True, required=False)
     location_id = serializers.PrimaryKeyRelatedField(queryset=Location.objects.all(), source='location', write_only=True, required=False)
     
@@ -88,7 +80,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             'id', 'title', 'description', 'start_time', 'end_time', 'author', 'location', 
-            'category', 'is_public', 'created_at', 'updated_at', 'participants', 
+            'category', 'is_public', 'created_at', 'updated_at', 
             'category_id', 'location_id'
         ]
 

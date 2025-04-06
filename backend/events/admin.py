@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
-from .models import Category, Location, Event, EventParticipant, UserProfile, Request
+from .models import Category, Location, Event, UserProfile, Request
 
 # Регистрация UserProfile
 @admin.register(UserProfile)
@@ -17,21 +17,12 @@ class RequestAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
 
 
-# Встроенная таблица для участников мероприятия
-class EventParticipantInline(admin.TabularInline):
-    model = EventParticipant
-    extra = 1  # Количество пустых строк для добавления участников
-    fields = ('user', 'registered_at')
-    readonly_fields = ('registered_at',)  # Поле registered_at только для чтения
-    autocomplete_fields = ('user',)  # Автозаполнение для выбора пользователя
-
 # Настройка админ-панели для Event
 @admin.register(Event)
 class EventAdmin(ModelAdmin):
     list_display = ('title', 'start_time', 'end_time', 'author', 'category', 'location', 'is_public')
     list_filter = ('is_public', 'category', 'location', 'start_time')  # Фильтры в боковой панели
     search_fields = ('title', 'description', 'author__username')  # Поиск по названию, описанию и автору
-    inlines = [EventParticipantInline]  # Добавление участников в форму события
     fieldsets = (
         (None, {
             'fields': ('title', 'description', 'author')
@@ -71,11 +62,3 @@ class LocationAdmin(ModelAdmin):
     list_display = ('name', 'city', 'capacity')
     search_fields = ('name', 'city', 'address')
     list_filter = ('city',)
-
-# Настройка EventParticipant
-@admin.register(EventParticipant)
-class EventParticipantAdmin(ModelAdmin):
-    list_display = ('event', 'user', 'registered_at')
-    list_filter = ('event', 'registered_at')
-    search_fields = ('event__title', 'user__username')
-    autocomplete_fields = ('event', 'user')  # Автозаполнение для события и пользователя
