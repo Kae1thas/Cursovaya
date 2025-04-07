@@ -37,3 +37,60 @@
 - Node.js 16+
 - PostgreSQL 13+
 - Git
+
+## Инструкции по установке и запуску
+
+### 1. Клонирование репозитория
+```bash
+git clone https://github.com/Kae1thas/event-manager.git
+cd event-manager
+```
+### 2. Настройка бэкенда
+1. Установите виртуальное окружение и зависимости:
+  ```bash
+   python -m venv venv
+   # Для Windows: .venv\Scripts\activate
+   pip install -r backend/requirements.txt
+  ```
+3. Настройте базу данных PostgreSQL:
+   - Создайте базу данных: `event_manager_db`.
+   - Обновите файл `backend/settings.py` с вашими настройками:
+   ```bash
+     DATABASES = {
+        'default': {
+          'ENGINE': 'django.db.backends.postgresql',
+          'NAME': 'event_db',
+          'USER': 'postgres',
+          'PASSWORD': '1239', 
+          'HOST': 'localhost',
+          'PORT': '5432',
+          'OPTIONS': {
+              'client_encoding': 'UTF8',
+          },
+      }
+}
+   ```
+4. Примените миграции и создайте суперпользователя:\
+   ```bash
+   python backend/manage.py migrate
+   python backend/manage.py createsuperuser
+   ```
+6. Запустите сервер:
+   ```bash
+   python backend/manage.py runserver
+   ```
+### 3. Настройка фронтенда
+1. Перейдите в папку фронтенда:
+   ```bash
+   cd frontend
+   ```
+3. Установите зависимости:
+   ```bash
+   npm install
+   ```
+5. Запустите приложение:
+   ```bash
+   npm start
+   ```
+   Фронтенд будет доступен по адресу `http://localhost:3000`.
+
