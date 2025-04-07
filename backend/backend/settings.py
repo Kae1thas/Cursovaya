@@ -38,10 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
        #новыеаппы
-    'events',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'events.apps.YourAppConfig',
 ]
 
 MIDDLEWARE = [
@@ -116,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-ru'
 
 TIME_ZONE = 'UTC'
 
@@ -152,7 +152,7 @@ CORS_ALLOWED_ORIGINS = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'events' / 'templates'],  # Указываем путь к кастомным шаблонам
+        'DIRS': [BASE_DIR / 'events' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -167,5 +167,5 @@ TEMPLATES = [
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Убедись, что эта строка есть
+    BASE_DIR / "static",
 ]

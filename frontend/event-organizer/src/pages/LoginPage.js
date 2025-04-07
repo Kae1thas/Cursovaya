@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { toast } from "react-toastify"; // Добавляем toast для уведомлений
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -18,16 +19,19 @@ const LoginPage = () => {
 
       const token = response.data.token;
       localStorage.setItem('token', token);
-      console.log('Успешная авторизация, токен:', token);
+      localStorage.setItem("username", username); // Сохраняем введённый username
+      console.log('Успешная авторизация, токен:', token, 'username:', username);
 
-      navigate('/events');
+      toast.success("Вход выполнен успешно!");
+      navigate('/');
     } catch (error) {
       console.error('Ошибка авторизации:', error.response?.data || error.message);
+      toast.error("Ошибка при входе. Проверьте логин и пароль.");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+    <div className="flex items-center justify-center h-full bg-gray-100 p-6">
       <motion.div
         className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md"
         initial={{ opacity: 0, scale: 0.8 }}
@@ -69,6 +73,17 @@ const LoginPage = () => {
           >
             Войти
           </motion.button>
+          <div className="text-center mt-4">
+            <p className="text-gray-600">
+              Нет аккаунта?{" "}
+              <button
+                onClick={() => navigate("/register")}
+                className="text-blue-500 hover:underline"
+              >
+                Зарегистрируйтесь
+              </button>
+            </p>
+          </div>
         </form>
       </motion.div>
     </div>
