@@ -5,4 +5,4 @@ class YourAppConfig(AppConfig):
     name = 'events'
 
     def ready(self):
-        import events.signals  # Подключаем сигналы
+        import events.signals

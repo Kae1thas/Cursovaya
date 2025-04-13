@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axiosClient, { getUserRole } from "../api/axiosClient"; // Заменяем axios на axiosClient
+import axiosClient, { getUserRole } from "../api/axiosClient";
 import { toast } from "react-toastify";
 import CreateCategoryForm from "../components/CreateCategoryForm";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
@@ -12,15 +12,15 @@ const CategoriesPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState(null); // Добавляем role
+  const [role, setRole] = useState(null); 
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const userRole = await getUserRole(); // Получаем роль
+        const userRole = await getUserRole();
         setRole(userRole);
-        const response = await axiosClient.get("/categories/"); // Используем axiosClient
+        const response = await axiosClient.get("/categories/");
         setCategories(response.data);
       } catch (error) {
         console.error("Ошибка загрузки категорий:", error);

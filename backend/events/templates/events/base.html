@@ -24,7 +24,6 @@
         {% endblock %}
     </main>
 
-    <!-- Подвал -->
     <footer>
         <button id="theme-toggle" class="theme-toggle-btn">Toggle Theme</button>
     </footer>
@@ -34,7 +33,6 @@
             const themeToggleButton = document.getElementById('theme-toggle');
             const body = document.body;
 
-            // Проверяем сохранённую тему из localStorage
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {
                 body.classList.add(savedTheme);

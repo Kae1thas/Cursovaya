@@ -8,7 +8,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 500); // Имитация загрузки
+    setTimeout(() => setLoading(false), 500); 
   }, []);
 
   return (

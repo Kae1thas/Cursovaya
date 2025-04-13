@@ -55,11 +55,10 @@ const CreateCategoryForm = ({ onCategoryCreated, onCategoryUpdated, categoryToEd
   }, [categoryToEdit]);
 
   const generateUniqueSlug = (name) => {
-    // Транслитерируем русские буквы и приводим к нижнему регистру
     let baseSlug = transliterate(name.toLowerCase())
-      .replace(/[^a-z0-9]+/g, "-") // Удаляем все, кроме букв и цифр, заменяем на "-"
-      .replace(/(^-|-$)/g, ""); // Удаляем дефисы в начале и конце
-    let newSlug = baseSlug || "category"; // Если слаг пустой, используем "category"
+      .replace(/[^a-z0-9]+/g, "-") 
+      .replace(/(^-|-$)/g, ""); 
+    let newSlug = baseSlug || "category"; 
     let counter = 1;
 
     while (categories.some((cat) => cat.slug === newSlug && cat.id !== (categoryToEdit?.id || 0))) {
