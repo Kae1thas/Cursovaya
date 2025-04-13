@@ -21,8 +21,8 @@ class RequestAdmin(admin.ModelAdmin):
 @admin.register(Event)
 class EventAdmin(ModelAdmin):
     list_display = ('title', 'start_time', 'end_time', 'author', 'category', 'location', 'is_public')
-    list_filter = ('is_public', 'category', 'location', 'start_time')  # Фильтры в боковой панели
-    search_fields = ('title', 'description', 'author__username')  # Поиск по названию, описанию и автору
+    list_filter = ('is_public', 'category', 'location', 'start_time')  
+    search_fields = ('title', 'description', 'author__username') 
     fieldsets = (
         (None, {
             'fields': ('title', 'description', 'author')
@@ -34,19 +34,19 @@ class EventAdmin(ModelAdmin):
             'fields': ('location', 'category', 'is_public')
         }),
     )
-    autocomplete_fields = ('author', 'location', 'category')  # Автозаполнение для связанных полей
-    ordering = ('-start_time',)  # Сортировка по убыванию даты начала
+    autocomplete_fields = ('author', 'location', 'category') 
+    ordering = ('-start_time',)  
 
     # Предзаполнение поля author текущим пользователем
     def save_model(self, request, obj, form, change):
-        if not obj.pk:  # Если объект новый
+        if not obj.pk:  
             obj.author = request.user
         super().save_model(request, obj, form, change)
 
     # Сохранение кастомных стилей
     class Media:
         css = {
-            'all': ('css/admin.css',)  # Ваш кастомный CSS
+            'all': ('css/admin.css',)
         }
 
 # Настройка Category
@@ -54,7 +54,7 @@ class EventAdmin(ModelAdmin):
 class CategoryAdmin(ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name',)
-    prepopulated_fields = {'slug': ('name',)}  # Автоматическое заполнение slug на основе name
+    prepopulated_fields = {'slug': ('name',)}  
 
 # Настройка Location
 @admin.register(Location)

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { toast } from "react-toastify"; // Добавляем toast для уведомлений
+import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -19,7 +19,7 @@ const LoginPage = () => {
 
       const token = response.data.token;
       localStorage.setItem('token', token);
-      localStorage.setItem("username", username); // Сохраняем введённый username
+      localStorage.setItem("username", username);
       console.log('Успешная авторизация, токен:', token, 'username:', username);
 
       toast.success("Вход выполнен успешно!");

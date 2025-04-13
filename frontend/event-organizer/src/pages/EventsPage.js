@@ -159,7 +159,7 @@ const EventsPage = () => {
     setRequestAction("create");
     setEventToEdit(null);
     setIsRequestModalOpen(false);
-    fetchEvents(); // Обновляем список событий
+    fetchEvents(); 
   };
 
   return (

@@ -25,7 +25,7 @@ urlpatterns = [
     path('events/', views.event_list, name='event_list'),
     path('api/user-role/', get_user_role, name='user-role'),
     path('api/public-events/', PublicEventsView.as_view(), name='public-events'),
-    path('api/users/<int:user_id>/update-role/', UpdateUserRoleView.as_view(), name='update-user-role'),  # Исправлено
+    path('api/users/<int:user_id>/update-role/', UpdateUserRoleView.as_view(), name='update-user-role'), 
 ]
 
 
